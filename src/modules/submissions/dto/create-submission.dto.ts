@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsUUID, IsNumber, IsBoolean, IsEnum, IsOptional } from 'class-validator';
+import { SubmissionStatus } from '../../../common/enum';
 
 export class CreateSubmissionDto {
   @ApiProperty({ description: 'Exam ID' })
@@ -20,8 +21,8 @@ export class CreateSubmissionDto {
   @IsOptional()
   cheated?: boolean;
 
-  @ApiProperty({ description: 'Submission status', enum: ['submitted', 'graded'], default: 'submitted', required: false })
-  @IsEnum(['submitted', 'graded'])
+  @ApiProperty({ description: 'Submission status', enum: SubmissionStatus, default: 'submitted', required: false })
+  @IsEnum(SubmissionStatus)
   @IsOptional()
-  status?: string;
+  status?: SubmissionStatus;
 }

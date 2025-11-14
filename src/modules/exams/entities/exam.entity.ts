@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { ExamType } from '../../../common/enum';
 import { User } from '../../users/entities/user.entity';
 import { Question } from '../../questions/entities/question.entity';
 import { Submission } from '../../submissions/entities/submission.entity';
@@ -24,10 +25,10 @@ export class Exam {
 
   @ApiProperty({ 
     description: 'Exam type', 
-    enum: ['essay', 'multiple_choice', 'coding'] 
+    enum: ExamType
   })
-  @Column({ type: 'varchar', length: 50 })
-  type: string;
+  @Column({ type: 'enum', enum: ExamType })
+  type: ExamType;
 
   @ApiProperty({ description: 'Access code for students' })
   @Column({ type: 'varchar', length: 100, unique: true })

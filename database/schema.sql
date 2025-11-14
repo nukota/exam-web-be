@@ -7,6 +7,13 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ==========================
+-- Enum Types
+-- ==========================
+
+-- Programming languages enum
+CREATE TYPE programming_language AS ENUM ('c++', 'python', 'javascript', 'java');
+
+-- ==========================
 -- Tables
 -- ==========================
 
@@ -47,6 +54,7 @@ CREATE TABLE IF NOT EXISTS questions (
   points FLOAT DEFAULT 1,
   correct_answer UUID[], -- store UUIDs of correct choices or NULL for essay/coding
   coding_template VARCHAR(1000),
+  programming_languages programming_language[], -- array of allowed programming languages for coding questions
   image_url VARCHAR(500)
 );
 

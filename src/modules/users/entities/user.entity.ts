@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { UserRole } from '../../../common/enum';
 import { Exam } from '../../exams/entities/exam.entity';
 import { Submission } from '../../submissions/entities/submission.entity';
 import { Flag } from '../../flags/entities/flag.entity';
@@ -41,11 +42,11 @@ export class User {
 
   @ApiProperty({
     description: 'User role',
-    enum: ['student', 'teacher', 'admin'],
+    enum: UserRole,
     example: 'student',
   })
-  @Column({ type: 'varchar', length: 50 })
-  role: string;
+  @Column({ type: 'enum', enum: UserRole })
+  role: UserRole;
 
   @ApiProperty({
     description: 'Date of birth (student only)',

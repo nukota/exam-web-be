@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEnum, IsOptional, IsDateString, IsInt, IsUUID } from 'class-validator';
+import { ExamType } from '../../../common/enum';
 
 export class CreateExamDto {
   @ApiProperty({ description: 'Teacher ID who created the exam' })
@@ -18,10 +19,10 @@ export class CreateExamDto {
 
   @ApiProperty({ 
     description: 'Exam type', 
-    enum: ['essay', 'multiple_choice', 'coding'] 
+    enum: ExamType
   })
-  @IsEnum(['essay', 'multiple_choice', 'coding'])
-  type: string;
+  @IsEnum(ExamType)
+  type: ExamType;
 
   @ApiProperty({ description: 'Access code for students' })
   @IsString()

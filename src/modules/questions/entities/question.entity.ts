@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { QuestionType, ProgrammingLanguage } from '../../../common/enum';
 import { Exam } from '../../exams/entities/exam.entity';
 import { Choice } from '../../choices/entities/choice.entity';
 import { CodingTestCase } from '../../coding-test-cases/entities/coding-test-case.entity';
@@ -22,10 +23,10 @@ export class Question {
 
   @ApiProperty({ 
     description: 'Question type', 
-    enum: ['essay', 'single_choice', 'multiple_choice', 'short_answer', 'coding'] 
+    enum: QuestionType
   })
-  @Column({ type: 'varchar', length: 50 })
-  question_type: string;
+  @Column({ type: 'enum', enum: QuestionType })
+  question_type: QuestionType;
 
   @ApiProperty({ description: 'Points for this question', default: 1 })
   @Column({ type: 'float', default: 1 })
@@ -38,6 +39,20 @@ export class Question {
   @ApiProperty({ description: 'Coding template', required: false })
   @Column({ type: 'varchar', length: 1000, nullable: true })
   coding_template?: string;
+
+  @ApiProperty({ 
+    description: 'Programming languages allowed for coding questions', 
+    required: false, 
+    type: [String],
+    enum: ProgrammingLanguage
+  })
+  @Column({ 
+    type: 'enum',
+    enum: ProgrammingLanguage,
+    array: true,
+    nullable: true
+  })
+  programming_languages?: ProgrammingLanguage[];
 
   @ApiProperty({ description: 'Image URL', required: false })
   @Column({ type: 'varchar', length: 500, nullable: true })

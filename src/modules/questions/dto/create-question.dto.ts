@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEnum, IsOptional, IsNumber, IsArray, IsUUID } from 'class-validator';
+import { QuestionType, ProgrammingLanguage } from '../../../common/enum';
 
 export class CreateQuestionDto {
   @ApiProperty({ description: 'Exam ID this question belongs to' })
@@ -13,10 +14,10 @@ export class CreateQuestionDto {
 
   @ApiProperty({ 
     description: 'Question type', 
-    enum: ['essay', 'single_choice', 'multiple_choice', 'short_answer', 'coding'] 
+    enum: QuestionType
   })
-  @IsEnum(['essay', 'single_choice', 'multiple_choice', 'short_answer', 'coding'])
-  question_type: string;
+  @IsEnum(QuestionType)
+  question_type: QuestionType;
 
   @ApiProperty({ description: 'Points for this question', default: 1 })
   @IsNumber()
@@ -33,6 +34,17 @@ export class CreateQuestionDto {
   @IsString()
   @IsOptional()
   coding_template?: string;
+
+  @ApiProperty({ 
+    description: 'Programming languages allowed for coding questions', 
+    required: false, 
+    type: [String],
+    enum: ProgrammingLanguage
+  })
+  @IsArray()
+  @IsEnum(ProgrammingLanguage, { each: true })
+  @IsOptional()
+  programming_languages?: ProgrammingLanguage[];
 
   @ApiProperty({ description: 'Image URL', required: false })
   @IsString()

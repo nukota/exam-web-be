@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { SubmissionStatus } from '../../../common/enum';
 import { Exam } from '../../exams/entities/exam.entity';
 import { User } from '../../users/entities/user.entity';
 import { Answer } from '../../answers/entities/answer.entity';
@@ -31,9 +32,9 @@ export class Submission {
   @Column({ type: 'boolean', default: false })
   cheated: boolean;
 
-  @ApiProperty({ description: 'Submission status', enum: ['submitted', 'graded'], default: 'submitted' })
-  @Column({ type: 'varchar', length: 50, default: 'submitted' })
-  status: string;
+  @ApiProperty({ description: 'Submission status', enum: SubmissionStatus, default: 'submitted' })
+  @Column({ type: 'enum', enum: SubmissionStatus, default: SubmissionStatus.SUBMITTED })
+  status: SubmissionStatus;
 
   @ManyToOne(() => Exam, exam => exam.submissions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'exam_id' })
