@@ -1,28 +1,30 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { Question } from './entities/question.entity';
 
 @Injectable()
 export class QuestionsService {
-  private questions: Question[] = [];
+  constructor(
+    @InjectRepository(Question)
+    private readonly questionRepository: Repository<Question>,
+  ) {}
 
   async create(createQuestionDto: CreateQuestionDto): Promise<Question> {
-    const newQuestion: Question = {
-      question_id: this.generateUUID(),
-      points: createQuestionDto.points || 1,
-      ...createQuestionDto,
-    };
-    this.questions.push(newQuestion);
-    return newQuestion;
+    const question = this.questionRepository.create(createQuestionDto);
+    return await this.questionRepository.save(question);
   }
 
   async findAll(): Promise<Question[]> {
-    return this.questions;
+    return await this.questionRepository.find();
   }
 
   async findOne(id: string): Promise<Question> {
-    const question = this.questions.find(q => q.question_id === id);
+    const question = await this.questionRepository.findOne({ 
+      where: { question_id: id } 
+    });
     if (!question) {
       throw new NotFoundException(`Question with ID ${id} not found`);
     }
@@ -30,31 +32,21 @@ export class QuestionsService {
   }
 
   async findByExamId(examId: string): Promise<Question[]> {
-    return this.questions.filter(q => q.exam_id === examId);
+    return await this.questionRepository.find({ 
+      where: { exam_id: examId } 
+    });
   }
 
   async update(id: string, updateQuestionDto: UpdateQuestionDto): Promise<Question> {
-    const questionIndex = this.questions.findIndex(q => q.question_id === id);
-    if (questionIndex === -1) {
-      throw new NotFoundException(`Question with ID ${id} not found`);
-    }
-    this.questions[questionIndex] = { ...this.questions[questionIndex], ...updateQuestionDto };
-    return this.questions[questionIndex];
+    const question = await this.findOne(id);
+    Object.assign(question, updateQuestionDto);
+    return await this.questionRepository.save(question);
   }
 
   async remove(id: string): Promise<void> {
-    const questionIndex = this.questions.findIndex(q => q.question_id === id);
-    if (questionIndex === -1) {
+    const result = await this.questionRepository.delete(id);
+    if (result.affected === 0) {
       throw new NotFoundException(`Question with ID ${id} not found`);
     }
-    this.questions.splice(questionIndex, 1);
-  }
-
-  private generateUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
   }
 }

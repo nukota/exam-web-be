@@ -1,33 +1,31 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  // TODO: Replace with actual database connection (e.g., TypeORM, Prisma, or pg client)
-  private users: User[] = [];
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    // TODO: Hash password before storing
-    // TODO: Insert into database
-    const newUser: User = {
-      user_id: this.generateUUID(),
-      ...createUserDto,
-      created_at: new Date(),
-    };
-    this.users.push(newUser);
-    return this.excludePassword(newUser);
+    // TODO: Hash password before storing (use bcrypt)
+    const user = this.userRepository.create(createUserDto);
+    const savedUser = await this.userRepository.save(user);
+    return this.excludePassword(savedUser);
   }
 
   async findAll(): Promise<User[]> {
-    // TODO: Query from database
-    return this.users.map(user => this.excludePassword(user));
+    const users = await this.userRepository.find();
+    return users.map(user => this.excludePassword(user));
   }
 
   async findOne(id: string): Promise<User> {
-    // TODO: Query from database
-    const user = this.users.find(u => u.user_id === id);
+    const user = await this.userRepository.findOne({ where: { user_id: id } });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -35,52 +33,37 @@ export class UsersService {
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    // TODO: Query from database
-    const user = this.users.find(u => u.username === username);
+    const user = await this.userRepository.findOne({ where: { username } });
     return user ? this.excludePassword(user) : null;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    // TODO: Query from database
-    const user = this.users.find(u => u.email === email);
+    const user = await this.userRepository.findOne({ where: { email } });
     return user ? this.excludePassword(user) : null;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    // TODO: Update in database
-    const userIndex = this.users.findIndex(u => u.user_id === id);
-    if (userIndex === -1) {
+    const user = await this.userRepository.findOne({ where: { user_id: id } });
+    if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
     
     // TODO: Hash password if it's being updated
-    this.users[userIndex] = {
-      ...this.users[userIndex],
-      ...updateUserDto,
-    };
+    Object.assign(user, updateUserDto);
+    const updatedUser = await this.userRepository.save(user);
     
-    return this.excludePassword(this.users[userIndex]);
+    return this.excludePassword(updatedUser);
   }
 
   async remove(id: string): Promise<void> {
-    // TODO: Delete from database
-    const userIndex = this.users.findIndex(u => u.user_id === id);
-    if (userIndex === -1) {
+    const result = await this.userRepository.delete(id);
+    if (result.affected === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    this.users.splice(userIndex, 1);
   }
 
   private excludePassword(user: User): User {
     const { password, ...userWithoutPassword } = user as any;
     return userWithoutPassword;
-  }
-
-  private generateUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
   }
 }
