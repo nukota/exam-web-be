@@ -1,0 +1,3 @@
+# Keep this file but ignore the actual service account JSON
+*-service-account.json
+firebase-service-account.json

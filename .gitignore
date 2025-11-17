@@ -38,3 +38,6 @@ lerna-debug.log*
 .env
 .env.local
 .env.*.local
+
+# Service account files
+firebase-service-account.json

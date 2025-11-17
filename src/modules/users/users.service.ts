@@ -13,15 +13,12 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    // TODO: Hash password before storing (use bcrypt)
     const user = this.userRepository.create(createUserDto);
-    const savedUser = await this.userRepository.save(user);
-    return this.excludePassword(savedUser);
+    return await this.userRepository.save(user);
   }
 
   async findAll(): Promise<User[]> {
-    const users = await this.userRepository.find();
-    return users.map(user => this.excludePassword(user));
+    return await this.userRepository.find();
   }
 
   async findOne(id: string): Promise<User> {
@@ -29,17 +26,25 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    return this.excludePassword(user);
+    return user;
   }
 
   async findByUsername(username: string): Promise<User | null> {
-    const user = await this.userRepository.findOne({ where: { username } });
-    return user ? this.excludePassword(user) : null;
+    return await this.userRepository.findOne({ where: { username } });
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const user = await this.userRepository.findOne({ where: { email } });
-    return user ? this.excludePassword(user) : null;
+    return await this.userRepository.findOne({ where: { email } });
+  }
+
+  async promoteToAdmin(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { user_id: id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    
+    user.role = 'admin' as any;
+    return await this.userRepository.save(user);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
@@ -48,11 +53,9 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
     
-    // TODO: Hash password if it's being updated
+    // Only allow updating non-Firebase fields (dob, class_name, school_name)
     Object.assign(user, updateUserDto);
-    const updatedUser = await this.userRepository.save(user);
-    
-    return this.excludePassword(updatedUser);
+    return await this.userRepository.save(user);
   }
 
   async remove(id: string): Promise<void> {
@@ -60,10 +63,5 @@ export class UsersService {
     if (result.affected === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-  }
-
-  private excludePassword(user: User): User {
-    const { password, ...userWithoutPassword } = user as any;
-    return userWithoutPassword;
   }
 }

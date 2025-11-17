@@ -21,10 +21,9 @@ CREATE TYPE programming_language AS ENUM ('c++', 'python', 'javascript', 'java')
 CREATE TABLE IF NOT EXISTS users (
   user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   username VARCHAR(255) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
   full_name VARCHAR(255),
   email VARCHAR(255) UNIQUE,
-  role VARCHAR(50) NOT NULL CHECK (role IN ('student', 'teacher', 'admin')),
+  role VARCHAR(50) NOT NULL CHECK (role IN ('student', 'admin')),
   dob DATE, -- student only
   class_name VARCHAR(100), -- student only
   school_name VARCHAR(255),

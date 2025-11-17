@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
@@ -20,16 +19,17 @@ import { User } from './entities/user.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create a new user' })
+  @Post(':id/promote-admin')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Promote a user to admin role' })
   @ApiResponse({
-    status: 201,
-    description: 'User created successfully',
+    status: 200,
+    description: 'User promoted to admin successfully',
     type: User,
   })
-  @ApiResponse({ status: 400, description: 'Bad request - validation error' })
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.usersService.create(createUserDto);
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async promoteToAdmin(@Param('id') id: string): Promise<User> {
+    return this.usersService.promoteToAdmin(id);
   }
 
   @Get()
