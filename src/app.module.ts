@@ -9,7 +9,7 @@ import { ExamsModule } from './modules/exams/exams.module';
 import { QuestionsModule } from './modules/questions/questions.module';
 import { ChoicesModule } from './modules/choices/choices.module';
 import { CodingTestCasesModule } from './modules/coding-test-cases/coding-test-cases.module';
-import { SubmissionsModule } from './modules/submissions/submissions.module';
+import { AttemptsModule } from './modules/attempts/attempts.module';
 import { AnswersModule } from './modules/answers/answers.module';
 import { FlagsModule } from './modules/flags/flags.module';
 
@@ -47,7 +47,7 @@ import { FlagsModule } from './modules/flags/flags.module';
     QuestionsModule,
     ChoicesModule,
     CodingTestCasesModule,
-    SubmissionsModule,
+    AttemptsModule,
     AnswersModule,
     FlagsModule,
   ],

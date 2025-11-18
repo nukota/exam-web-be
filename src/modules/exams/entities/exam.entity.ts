@@ -1,9 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { ExamType } from '../../../common/enum';
 import { User } from '../../users/entities/user.entity';
 import { Question } from '../../questions/entities/question.entity';
-import { Submission } from '../../submissions/entities/submission.entity';
+import { Attempt } from '../../attempts/entities/attempt.entity';
 
 @Entity('exams')
 export class Exam {
@@ -16,16 +24,16 @@ export class Exam {
   teacher_id: string;
 
   @ApiProperty({ description: 'Exam title', required: false })
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  title?: string;
+  @Column({ type: 'varchar', length: 255 })
+  title: string;
 
   @ApiProperty({ description: 'Exam description', required: false })
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @ApiProperty({ 
-    description: 'Exam type', 
-    enum: ExamType
+  @ApiProperty({
+    description: 'Exam type',
+    enum: ExamType,
   })
   @Column({ type: 'enum', enum: ExamType })
   type: ExamType;
@@ -50,13 +58,13 @@ export class Exam {
   @Column({ type: 'integer', nullable: true })
   duration_minutes?: number;
 
-  @ManyToOne(() => User, user => user.exams, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.exams, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'teacher_id' })
   teacher: User;
 
-  @OneToMany(() => Question, question => question.exam)
+  @OneToMany(() => Question, (question) => question.exam)
   questions: Question[];
 
-  @OneToMany(() => Submission, submission => submission.exam)
-  submissions: Submission[];
+  @OneToMany(() => Attempt, (attempt) => attempt.exam)
+  attempts: Attempt[];
 }

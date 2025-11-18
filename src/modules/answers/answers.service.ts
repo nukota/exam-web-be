@@ -25,8 +25,8 @@ export class AnswersService {
   }
 
   async findOne(id: string): Promise<Answer> {
-    const answer = await this.answerRepository.findOne({ 
-      where: { answer_id: id } 
+    const answer = await this.answerRepository.findOne({
+      where: { answer_id: id },
     });
     if (!answer) {
       throw new NotFoundException(`Answer with ID ${id} not found`);
@@ -34,28 +34,28 @@ export class AnswersService {
     return answer;
   }
 
-  async findBySubmissionId(submissionId: string): Promise<Answer[]> {
-    return await this.answerRepository.find({ 
-      where: { submission_id: submissionId } 
+  async findByAttemptId(attemptId: string): Promise<Answer[]> {
+    return await this.answerRepository.find({
+      where: { attempt_id: attemptId },
     });
   }
 
   async findByQuestionId(questionId: string): Promise<Answer[]> {
-    return await this.answerRepository.find({ 
-      where: { question_id: questionId } 
+    return await this.answerRepository.find({
+      where: { question_id: questionId },
     });
   }
 
   async update(id: string, updateDto: UpdateAnswerDto): Promise<Answer> {
     const answer = await this.findOne(id);
-    
+
     Object.assign(answer, updateDto);
-    
+
     // Update graded_at if graded_by is being set
     if (updateDto.graded_by && !answer.graded_at) {
       answer.graded_at = new Date();
     }
-    
+
     return await this.answerRepository.save(answer);
   }
 

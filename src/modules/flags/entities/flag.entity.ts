@@ -1,8 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { Question } from '../../questions/entities/question.entity';
-import { Submission } from '../../submissions/entities/submission.entity';
+import { Attempt } from '../../attempts/entities/attempt.entity';
 
 @Entity('flags')
 export class Flag {
@@ -18,27 +25,32 @@ export class Flag {
   @Column({ type: 'uuid' })
   question_id: string;
 
-  @ApiProperty({ description: 'Submission ID' })
+  @ApiProperty({ description: 'Attempt ID' })
   @Column({ type: 'uuid' })
-  submission_id: string;
+  attempt_id: string;
 
   @ApiProperty({ description: 'When the question was flagged' })
   @CreateDateColumn({ type: 'timestamp with time zone' })
   flagged_at: Date;
 
-  @ApiProperty({ description: 'Optional note about why the question was flagged', required: false })
+  @ApiProperty({
+    description: 'Optional note about why the question was flagged',
+    required: false,
+  })
   @Column({ type: 'text', nullable: true })
   note?: string;
 
-  @ManyToOne(() => User, user => user.flags, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.flags, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Question, question => question.flags, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Question, (question) => question.flags, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'question_id' })
   question: Question;
 
-  @ManyToOne(() => Submission, submission => submission.flags, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'submission_id' })
-  submission: Submission;
+  @ManyToOne(() => Attempt, (attempt) => attempt.flags, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'attempt_id' })
+  attempt: Attempt;
 }

@@ -22,8 +22,8 @@ export class FlagsService {
   }
 
   async findOne(id: string): Promise<Flag> {
-    const flag = await this.flagRepository.findOne({ 
-      where: { flag_id: id } 
+    const flag = await this.flagRepository.findOne({
+      where: { flag_id: id },
     });
     if (!flag) {
       throw new NotFoundException(`Flag with ID ${id} not found`);
@@ -32,20 +32,20 @@ export class FlagsService {
   }
 
   async findByUserId(userId: string): Promise<Flag[]> {
-    return await this.flagRepository.find({ 
-      where: { user_id: userId } 
+    return await this.flagRepository.find({
+      where: { user_id: userId },
     });
   }
 
-  async findBySubmissionId(submissionId: string): Promise<Flag[]> {
-    return await this.flagRepository.find({ 
-      where: { submission_id: submissionId } 
+  async findByAttemptId(attemptId: string): Promise<Flag[]> {
+    return await this.flagRepository.find({
+      where: { attempt_id: attemptId },
     });
   }
 
   async findByQuestionId(questionId: string): Promise<Flag[]> {
-    return await this.flagRepository.find({ 
-      where: { question_id: questionId } 
+    return await this.flagRepository.find({
+      where: { question_id: questionId },
     });
   }
 

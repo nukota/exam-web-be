@@ -1,8 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRole } from '../../../common/enum';
 import { Exam } from '../../exams/entities/exam.entity';
-import { Submission } from '../../submissions/entities/submission.entity';
+import { Attempt } from '../../attempts/entities/attempt.entity';
 import { Flag } from '../../flags/entities/flag.entity';
 
 @Entity('users')
@@ -76,12 +82,12 @@ export class User {
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;
 
-  @OneToMany(() => Exam, exam => exam.teacher)
+  @OneToMany(() => Exam, (exam) => exam.teacher)
   exams: Exam[];
 
-  @OneToMany(() => Submission, submission => submission.user)
-  submissions: Submission[];
+  @OneToMany(() => Attempt, (attempt) => attempt.user)
+  attempts: Attempt[];
 
-  @OneToMany(() => Flag, flag => flag.user)
+  @OneToMany(() => Flag, (flag) => flag.user)
   flags: Flag[];
 }

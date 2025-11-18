@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEnum, IsOptional, IsNumber, IsArray, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsNumber,
+  IsArray,
+  IsUUID,
+} from 'class-validator';
 import { QuestionType, ProgrammingLanguage } from '../../../common/enum';
 
 export class CreateQuestionDto {
@@ -12,9 +19,9 @@ export class CreateQuestionDto {
   @IsOptional()
   question_text?: string;
 
-  @ApiProperty({ 
-    description: 'Question type', 
-    enum: QuestionType
+  @ApiProperty({
+    description: 'Question type',
+    enum: QuestionType,
   })
   @IsEnum(QuestionType)
   question_type: QuestionType;
@@ -24,22 +31,34 @@ export class CreateQuestionDto {
   @IsOptional()
   points?: number;
 
-  @ApiProperty({ description: 'Correct answer UUIDs', required: false, type: [String] })
+  @ApiProperty({
+    description: 'Correct answer UUIDs (for choice questions)',
+    required: false,
+    type: [String],
+  })
   @IsArray()
   @IsUUID('4', { each: true })
   @IsOptional()
   correct_answer?: string[];
+
+  @ApiProperty({
+    description: 'Correct answer text (for short_answer questions)',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  correct_answer_text?: string;
 
   @ApiProperty({ description: 'Coding template', required: false })
   @IsString()
   @IsOptional()
   coding_template?: string;
 
-  @ApiProperty({ 
-    description: 'Programming languages allowed for coding questions', 
-    required: false, 
+  @ApiProperty({
+    description: 'Programming languages allowed for coding questions',
+    required: false,
     type: [String],
-    enum: ProgrammingLanguage
+    enum: ProgrammingLanguage,
   })
   @IsArray()
   @IsEnum(ProgrammingLanguage, { each: true })

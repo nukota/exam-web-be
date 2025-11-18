@@ -1,5 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { AnswersService } from './answers.service';
 import { CreateAnswerDto } from './dto/create-answer.dto';
 import { UpdateAnswerDto } from './dto/update-answer.dto';
@@ -13,7 +30,11 @@ export class AnswersController {
   @Post()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new answer' })
-  @ApiResponse({ status: 201, description: 'Answer created successfully', type: Answer })
+  @ApiResponse({
+    status: 201,
+    description: 'Answer created successfully',
+    type: Answer,
+  })
   async create(@Body() createDto: CreateAnswerDto): Promise<Answer> {
     return this.answersService.create(createDto);
   }
@@ -21,15 +42,27 @@ export class AnswersController {
   @Get()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all answers' })
-  @ApiQuery({ name: 'submissionId', required: false, description: 'Filter by submission ID' })
-  @ApiQuery({ name: 'questionId', required: false, description: 'Filter by question ID' })
-  @ApiResponse({ status: 200, description: 'List of all answers', type: [Answer] })
+  @ApiQuery({
+    name: 'attemptId',
+    required: false,
+    description: 'Filter by attempt ID',
+  })
+  @ApiQuery({
+    name: 'questionId',
+    required: false,
+    description: 'Filter by question ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all answers',
+    type: [Answer],
+  })
   async findAll(
-    @Query('submissionId') submissionId?: string,
+    @Query('attemptId') attemptId?: string,
     @Query('questionId') questionId?: string,
   ): Promise<Answer[]> {
-    if (submissionId) {
-      return this.answersService.findBySubmissionId(submissionId);
+    if (attemptId) {
+      return this.answersService.findByAttemptId(attemptId);
     }
     if (questionId) {
       return this.answersService.findByQuestionId(questionId);
@@ -49,9 +82,16 @@ export class AnswersController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an answer (for grading)' })
-  @ApiResponse({ status: 200, description: 'Answer updated successfully', type: Answer })
+  @ApiResponse({
+    status: 200,
+    description: 'Answer updated successfully',
+    type: Answer,
+  })
   @ApiResponse({ status: 404, description: 'Answer not found' })
-  async update(@Param('id') id: string, @Body() updateDto: UpdateAnswerDto): Promise<Answer> {
+  async update(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateAnswerDto,
+  ): Promise<Answer> {
     return this.answersService.update(id, updateDto);
   }
 

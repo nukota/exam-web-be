@@ -23,7 +23,10 @@ export enum ProgrammingLanguage {
   JAVA = 'java',
 }
 
-export enum SubmissionStatus {
+export enum AttemptStatus {
+  NOT_STARTED = 'not_started',
+  IN_PROGRESS = 'in_progress',
   SUBMITTED = 'submitted',
+  OVERDUE = 'overdue',
   GRADED = 'graded',
 }

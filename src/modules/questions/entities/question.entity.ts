@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { QuestionType, ProgrammingLanguage } from '../../../common/enum';
 import { Exam } from '../../exams/entities/exam.entity';
@@ -21,9 +28,9 @@ export class Question {
   @Column({ type: 'text', nullable: true })
   question_text?: string;
 
-  @ApiProperty({ 
-    description: 'Question type', 
-    enum: QuestionType
+  @ApiProperty({
+    description: 'Question type',
+    enum: QuestionType,
   })
   @Column({ type: 'enum', enum: QuestionType })
   question_type: QuestionType;
@@ -32,25 +39,36 @@ export class Question {
   @Column({ type: 'float', default: 1 })
   points: number;
 
-  @ApiProperty({ description: 'Correct answer UUIDs (for choice questions)', required: false, type: [String] })
+  @ApiProperty({
+    description: 'Correct answer UUIDs (for choice questions)',
+    required: false,
+    type: [String],
+  })
   @Column({ type: 'uuid', array: true, nullable: true })
   correct_answer?: string[];
+
+  @ApiProperty({
+    description: 'Correct answer text (for short_answer questions)',
+    required: false,
+  })
+  @Column({ type: 'text', nullable: true })
+  correct_answer_text?: string;
 
   @ApiProperty({ description: 'Coding template', required: false })
   @Column({ type: 'varchar', length: 1000, nullable: true })
   coding_template?: string;
 
-  @ApiProperty({ 
-    description: 'Programming languages allowed for coding questions', 
-    required: false, 
+  @ApiProperty({
+    description: 'Programming languages allowed for coding questions',
+    required: false,
     type: [String],
-    enum: ProgrammingLanguage
+    enum: ProgrammingLanguage,
   })
-  @Column({ 
+  @Column({
     type: 'enum',
     enum: ProgrammingLanguage,
     array: true,
-    nullable: true
+    nullable: true,
   })
   programming_languages?: ProgrammingLanguage[];
 
@@ -58,19 +76,19 @@ export class Question {
   @Column({ type: 'varchar', length: 500, nullable: true })
   image_url?: string;
 
-  @ManyToOne(() => Exam, exam => exam.questions, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Exam, (exam) => exam.questions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'exam_id' })
   exam: Exam;
 
-  @OneToMany(() => Choice, choice => choice.question)
+  @OneToMany(() => Choice, (choice) => choice.question)
   choices: Choice[];
 
-  @OneToMany(() => CodingTestCase, testCase => testCase.question)
+  @OneToMany(() => CodingTestCase, (testCase) => testCase.question)
   codingTestCases: CodingTestCase[];
 
-  @OneToMany(() => Answer, answer => answer.question)
+  @OneToMany(() => Answer, (answer) => answer.question)
   answers: Answer[];
 
-  @OneToMany(() => Flag, flag => flag.question)
+  @OneToMany(() => Flag, (flag) => flag.question)
   flags: Flag[];
 }

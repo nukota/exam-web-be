@@ -13,6 +13,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Programming languages enum
 CREATE TYPE programming_language AS ENUM ('c++', 'python', 'javascript', 'java');
 
+-- Attempt status enum
+CREATE TYPE attempt_status AS ENUM ('not_started', 'in_progress', 'submitted', 'overdue', 'graded');
+
 -- ==========================
 -- Tables
 -- ==========================
@@ -51,7 +54,8 @@ CREATE TABLE IF NOT EXISTS questions (
   question_text TEXT,
   question_type VARCHAR(50) NOT NULL CHECK (question_type IN ('essay', 'single_choice', 'multiple_choice', 'short_answer', 'coding')),
   points FLOAT DEFAULT 1,
-  correct_answer UUID[], -- store UUIDs of correct choices or NULL for essay/coding
+  correct_answer UUID[], -- store UUIDs of correct choices for single_choice and multiple_choice questions
+  correct_answer_text TEXT, -- store correct answer text for short_answer questions
   coding_template VARCHAR(1000),
   programming_languages programming_language[], -- array of allowed programming languages for coding questions
   image_url VARCHAR(500)
@@ -61,8 +65,7 @@ CREATE TABLE IF NOT EXISTS questions (
 CREATE TABLE IF NOT EXISTS choices (
   choice_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   question_id UUID NOT NULL,
-  choice_text VARCHAR(500),
-  is_correct BOOLEAN DEFAULT false
+  choice_text VARCHAR(500)
 );
 
 -- Coding test cases table
@@ -74,21 +77,24 @@ CREATE TABLE IF NOT EXISTS coding_test_cases (
   is_hidden BOOLEAN DEFAULT false -- true = hidden test case
 );
 
--- Submissions table
-CREATE TABLE IF NOT EXISTS submissions (
-  submission_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+-- Attempts table
+CREATE TABLE IF NOT EXISTS attempts (
+  attempt_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   exam_id UUID NOT NULL,
   user_id UUID NOT NULL,
-  submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  started_at TIMESTAMP WITH TIME ZONE,
+  submitted_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   total_score FLOAT DEFAULT 0,
   cheated BOOLEAN DEFAULT false,
-  status VARCHAR(50) DEFAULT 'submitted' CHECK (status IN ('submitted', 'graded'))
+  status attempt_status DEFAULT 'not_started'
 );
 
 -- Answers table
 CREATE TABLE IF NOT EXISTS answers (
   answer_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  submission_id UUID NOT NULL,
+  attempt_id UUID NOT NULL,
   question_id UUID NOT NULL,
   answer_text TEXT, -- or code for coding exams, essay, short_answer
   selected_choices UUID[], -- for single_choice or multiple_choice questions
@@ -102,7 +108,7 @@ CREATE TABLE IF NOT EXISTS flags (
   flag_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL,
   question_id UUID NOT NULL,
-  submission_id UUID NOT NULL,
+  attempt_id UUID NOT NULL,
   flagged_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   note TEXT -- optional note the user can add when flagging a question
 );
@@ -127,17 +133,17 @@ ALTER TABLE coding_test_cases
   ADD CONSTRAINT fk_coding_test_cases_question
   FOREIGN KEY (question_id) REFERENCES questions(question_id) ON DELETE CASCADE;
 
-ALTER TABLE submissions
-  ADD CONSTRAINT fk_submissions_exam
+ALTER TABLE attempts
+  ADD CONSTRAINT fk_attempts_exam
   FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE;
 
-ALTER TABLE submissions
-  ADD CONSTRAINT fk_submissions_user
+ALTER TABLE attempts
+  ADD CONSTRAINT fk_attempts_user
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
 
 ALTER TABLE answers
-  ADD CONSTRAINT fk_answers_submission
-  FOREIGN KEY (submission_id) REFERENCES submissions(submission_id) ON DELETE CASCADE;
+  ADD CONSTRAINT fk_answers_attempt
+  FOREIGN KEY (attempt_id) REFERENCES attempts(attempt_id) ON DELETE CASCADE;
 
 ALTER TABLE answers
   ADD CONSTRAINT fk_answers_question
@@ -156,8 +162,8 @@ ALTER TABLE flags
   FOREIGN KEY (question_id) REFERENCES questions(question_id) ON DELETE CASCADE;
 
 ALTER TABLE flags
-  ADD CONSTRAINT fk_flags_submission
-  FOREIGN KEY (submission_id) REFERENCES submissions(submission_id) ON DELETE CASCADE;
+  ADD CONSTRAINT fk_flags_attempt
+  FOREIGN KEY (attempt_id) REFERENCES attempts(attempt_id) ON DELETE CASCADE;
 
 -- ==========================
 -- Indexes for Performance
@@ -178,26 +184,26 @@ CREATE INDEX idx_choices_question_id ON choices(question_id);
 
 CREATE INDEX idx_coding_test_cases_question_id ON coding_test_cases(question_id);
 
-CREATE INDEX idx_submissions_exam_id ON submissions(exam_id);
-CREATE INDEX idx_submissions_user_id ON submissions(user_id);
-CREATE INDEX idx_submissions_status ON submissions(status);
+CREATE INDEX idx_attempts_exam_id ON attempts(exam_id);
+CREATE INDEX idx_attempts_user_id ON attempts(user_id);
+CREATE INDEX idx_attempts_status ON attempts(status);
 
-CREATE INDEX idx_answers_submission_id ON answers(submission_id);
+CREATE INDEX idx_answers_attempt_id ON answers(attempt_id);
 CREATE INDEX idx_answers_question_id ON answers(question_id);
 
 CREATE INDEX idx_flags_user_id ON flags(user_id);
 CREATE INDEX idx_flags_question_id ON flags(question_id);
-CREATE INDEX idx_flags_submission_id ON flags(submission_id);
+CREATE INDEX idx_flags_attempt_id ON flags(attempt_id);
 
 -- ==========================
 -- Comments
 -- ==========================
 
-COMMENT ON TABLE users IS 'Stores user information for students, teachers, and administrators';
-COMMENT ON TABLE exams IS 'Stores exam metadata created by teachers';
+COMMENT ON TABLE users IS 'Stores user information for students and administrators';
+COMMENT ON TABLE exams IS 'Stores exam metadata created by admins';
 COMMENT ON TABLE questions IS 'Stores questions belonging to exams';
 COMMENT ON TABLE choices IS 'Stores multiple choice options for questions';
 COMMENT ON TABLE coding_test_cases IS 'Stores test cases for coding questions';
-COMMENT ON TABLE submissions IS 'Stores student exam submissions';
-COMMENT ON TABLE answers IS 'Stores student answers for each question in a submission';
-COMMENT ON TABLE flags IS 'Stores flagged questions by students during exams';
+COMMENT ON TABLE attempts IS 'Stores student exam attempts with various statuses (not_started, in_progress, submitted, overdue, graded)';
+COMMENT ON TABLE answers IS 'Stores student answers for each question in an attempt';
+COMMENT ON TABLE flags IS 'Stores flagged questions by students during exam attempts';

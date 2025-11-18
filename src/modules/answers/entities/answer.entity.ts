@@ -1,6 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { Submission } from '../../submissions/entities/submission.entity';
+import { Attempt } from '../../attempts/entities/attempt.entity';
 import { Question } from '../../questions/entities/question.entity';
 import { User } from '../../users/entities/user.entity';
 
@@ -10,19 +16,26 @@ export class Answer {
   @PrimaryGeneratedColumn('uuid')
   answer_id: string;
 
-  @ApiProperty({ description: 'Submission ID' })
+  @ApiProperty({ description: 'Attempt ID' })
   @Column({ type: 'uuid' })
-  submission_id: string;
+  attempt_id: string;
 
   @ApiProperty({ description: 'Question ID' })
   @Column({ type: 'uuid' })
   question_id: string;
 
-  @ApiProperty({ description: 'Answer text (for essay, short answer, or code)', required: false })
+  @ApiProperty({
+    description: 'Answer text (for essay, short answer, or code)',
+    required: false,
+  })
   @Column({ type: 'text', nullable: true })
   answer_text?: string;
 
-  @ApiProperty({ description: 'Selected choice IDs (for multiple choice)', required: false, type: [String] })
+  @ApiProperty({
+    description: 'Selected choice IDs (for multiple choice)',
+    required: false,
+    type: [String],
+  })
   @Column({ type: 'uuid', array: true, nullable: true })
   selected_choices?: string[];
 
@@ -38,11 +51,15 @@ export class Answer {
   @Column({ type: 'timestamp with time zone', nullable: true })
   graded_at?: Date;
 
-  @ManyToOne(() => Submission, submission => submission.answers, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'submission_id' })
-  submission: Submission;
+  @ManyToOne(() => Attempt, (attempt) => attempt.answers, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'attempt_id' })
+  attempt: Attempt;
 
-  @ManyToOne(() => Question, question => question.answers, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Question, (question) => question.answers, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'question_id' })
   question: Question;
 

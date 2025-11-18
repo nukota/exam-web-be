@@ -10,9 +10,4 @@ export class CreateChoiceDto {
   @IsString()
   @IsOptional()
   choice_text?: string;
-
-  @ApiProperty({ description: 'Whether this choice is correct', default: false })
-  @IsBoolean()
-  @IsOptional()
-  is_correct?: boolean;
 }

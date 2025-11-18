@@ -9,8 +9,7 @@ export class CreateExamDto {
 
   @ApiProperty({ description: 'Exam title', required: false })
   @IsString()
-  @IsOptional()
-  title?: string;
+  title: string;
 
   @ApiProperty({ description: 'Exam description', required: false })
   @IsString()
