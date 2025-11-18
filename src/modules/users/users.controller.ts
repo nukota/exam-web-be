@@ -9,7 +9,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -76,10 +81,70 @@ export class UsersController {
   @Delete(':id')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a user' })
+  @ApiOperation({ summary: 'Delete a user from database only' })
   @ApiResponse({ status: 204, description: 'User deleted successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async remove(@Param('id') id: string): Promise<void> {
     return this.usersService.remove(id);
+  }
+
+  @Delete(':id/complete')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Completely delete a user from both database and Firebase',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User deleted from both database and Firebase',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        deletedFromDb: { type: 'boolean' },
+        deletedFromFirebase: { type: 'boolean' },
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async deleteUser(
+    @Param('id') id: string,
+  ): Promise<{
+    message: string;
+    deletedFromDb: boolean;
+    deletedFromFirebase: boolean;
+  }> {
+    return this.usersService.deleteUser(id);
+  }
+
+  @Post('delete-all')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Delete all users from both database and Firebase (DANGEROUS)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'All users deleted',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        totalUsers: { type: 'number' },
+        deletedFromDb: { type: 'number' },
+        deletedFromFirebase: { type: 'number' },
+        firebaseErrors: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({ status: 403, description: 'Invalid confirmation code' })
+  async deleteAllUsers(
+    @Body('confirmationCode') confirmationCode: string,
+  ): Promise<{
+    message: string;
+    totalUsers: number;
+    deletedFromDb: number;
+    deletedFromFirebase: number;
+    firebaseErrors: number;
+  }> {
+    return this.usersService.deleteAllUsers(confirmationCode);
   }
 }

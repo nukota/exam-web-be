@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS questions (
   question_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   exam_id UUID NOT NULL,
   question_text TEXT,
+  "order" INTEGER DEFAULT 0, -- order of question in exam
   question_type VARCHAR(50) NOT NULL CHECK (question_type IN ('essay', 'single_choice', 'multiple_choice', 'short_answer', 'coding')),
   points FLOAT DEFAULT 1,
   correct_answer UUID[], -- store UUIDs of correct choices for single_choice and multiple_choice questions

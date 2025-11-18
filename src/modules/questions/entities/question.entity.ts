@@ -28,6 +28,10 @@ export class Question {
   @Column({ type: 'text', nullable: true })
   question_text?: string;
 
+  @ApiProperty({ description: 'Order of question in exam', default: 0 })
+  @Column({ type: 'int', default: 0 })
+  order: number;
+
   @ApiProperty({
     description: 'Question type',
     enum: QuestionType,
