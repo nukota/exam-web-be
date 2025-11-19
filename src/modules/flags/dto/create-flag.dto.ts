@@ -10,11 +10,10 @@ export class CreateFlagDto {
   @IsUUID()
   question_id: string;
 
-  @ApiProperty({ description: 'Submission ID' })
-  @IsUUID()
-  submission_id: string;
-
-  @ApiProperty({ description: 'Optional note about why the question was flagged', required: false })
+  @ApiProperty({
+    description: 'Optional note about why the question was flagged',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   note?: string;

@@ -48,11 +48,6 @@ export class FlagsController {
     description: 'Filter by user ID',
   })
   @ApiQuery({
-    name: 'attemptId',
-    required: false,
-    description: 'Filter by attempt ID',
-  })
-  @ApiQuery({
     name: 'questionId',
     required: false,
     description: 'Filter by question ID',
@@ -60,14 +55,10 @@ export class FlagsController {
   @ApiResponse({ status: 200, description: 'List of all flags', type: [Flag] })
   async findAll(
     @Query('userId') userId?: string,
-    @Query('attemptId') attemptId?: string,
     @Query('questionId') questionId?: string,
   ): Promise<Flag[]> {
     if (userId) {
       return this.flagsService.findByUserId(userId);
-    }
-    if (attemptId) {
-      return this.flagsService.findByAttemptId(attemptId);
     }
     if (questionId) {
       return this.flagsService.findByQuestionId(questionId);
@@ -75,16 +66,19 @@ export class FlagsController {
     return this.flagsService.findAll();
   }
 
-  @Get(':id')
+  @Get(':userId/:questionId')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a flag by ID' })
+  @ApiOperation({ summary: 'Get a flag by user ID and question ID' })
   @ApiResponse({ status: 200, description: 'Flag found', type: Flag })
   @ApiResponse({ status: 404, description: 'Flag not found' })
-  async findOne(@Param('id') id: string): Promise<Flag> {
-    return this.flagsService.findOne(id);
+  async findOne(
+    @Param('userId') userId: string,
+    @Param('questionId') questionId: string,
+  ): Promise<Flag> {
+    return this.flagsService.findOne(userId, questionId);
   }
 
-  @Patch(':id')
+  @Patch(':userId/:questionId')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a flag' })
   @ApiResponse({
@@ -94,19 +88,23 @@ export class FlagsController {
   })
   @ApiResponse({ status: 404, description: 'Flag not found' })
   async update(
-    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @Param('questionId') questionId: string,
     @Body() updateDto: UpdateFlagDto,
   ): Promise<Flag> {
-    return this.flagsService.update(id, updateDto);
+    return this.flagsService.update(userId, questionId, updateDto);
   }
 
-  @Delete(':id')
+  @Delete(':userId/:questionId')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a flag' })
   @ApiResponse({ status: 204, description: 'Flag deleted successfully' })
   @ApiResponse({ status: 404, description: 'Flag not found' })
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.flagsService.remove(id);
+  async remove(
+    @Param('userId') userId: string,
+    @Param('questionId') questionId: string,
+  ): Promise<void> {
+    return this.flagsService.remove(userId, questionId);
   }
 }

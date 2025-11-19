@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS exams (
   start_at TIMESTAMP WITH TIME ZONE,
   end_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  duration_minutes INTEGER
+  duration_minutes INTEGER,
+  results_released BOOLEAN DEFAULT false
 );
 
 -- Questions table
@@ -106,12 +107,11 @@ CREATE TABLE IF NOT EXISTS answers (
 
 -- Flags table
 CREATE TABLE IF NOT EXISTS flags (
-  flag_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL,
   question_id UUID NOT NULL,
-  attempt_id UUID NOT NULL,
   flagged_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  note TEXT -- optional note the user can add when flagging a question
+  note TEXT, -- optional note the user can add when flagging a question
+  PRIMARY KEY (user_id, question_id)
 );
 
 -- ==========================
@@ -162,10 +162,6 @@ ALTER TABLE flags
   ADD CONSTRAINT fk_flags_question
   FOREIGN KEY (question_id) REFERENCES questions(question_id) ON DELETE CASCADE;
 
-ALTER TABLE flags
-  ADD CONSTRAINT fk_flags_attempt
-  FOREIGN KEY (attempt_id) REFERENCES attempts(attempt_id) ON DELETE CASCADE;
-
 -- ==========================
 -- Indexes for Performance
 -- ==========================
@@ -192,9 +188,7 @@ CREATE INDEX idx_attempts_status ON attempts(status);
 CREATE INDEX idx_answers_attempt_id ON answers(attempt_id);
 CREATE INDEX idx_answers_question_id ON answers(question_id);
 
-CREATE INDEX idx_flags_user_id ON flags(user_id);
-CREATE INDEX idx_flags_question_id ON flags(question_id);
-CREATE INDEX idx_flags_attempt_id ON flags(attempt_id);
+-- Composite primary key (user_id, question_id) already provides indexing
 
 -- ==========================
 -- Comments

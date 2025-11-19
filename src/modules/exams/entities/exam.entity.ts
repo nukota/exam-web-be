@@ -58,6 +58,13 @@ export class Exam {
   @Column({ type: 'integer', nullable: true })
   duration_minutes?: number;
 
+  @ApiProperty({
+    description: 'Whether results have been released to students',
+    default: false,
+  })
+  @Column({ type: 'boolean', default: false })
+  results_released: boolean;
+
   @ManyToOne(() => User, (user) => user.exams, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'teacher_id' })
   teacher: User;

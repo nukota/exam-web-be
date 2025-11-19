@@ -1,6 +1,6 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Column,
   CreateDateColumn,
   ManyToOne,
@@ -9,25 +9,16 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { Question } from '../../questions/entities/question.entity';
-import { Attempt } from '../../attempts/entities/attempt.entity';
 
 @Entity('flags')
 export class Flag {
-  @ApiProperty({ description: 'Flag unique identifier' })
-  @PrimaryGeneratedColumn('uuid')
-  flag_id: string;
-
   @ApiProperty({ description: 'User ID who flagged' })
-  @Column({ type: 'uuid' })
+  @PrimaryColumn({ type: 'uuid' })
   user_id: string;
 
   @ApiProperty({ description: 'Question ID that was flagged' })
-  @Column({ type: 'uuid' })
+  @PrimaryColumn({ type: 'uuid' })
   question_id: string;
-
-  @ApiProperty({ description: 'Attempt ID' })
-  @Column({ type: 'uuid' })
-  attempt_id: string;
 
   @ApiProperty({ description: 'When the question was flagged' })
   @CreateDateColumn({ type: 'timestamp with time zone' })
@@ -49,8 +40,4 @@ export class Flag {
   })
   @JoinColumn({ name: 'question_id' })
   question: Question;
-
-  @ManyToOne(() => Attempt, (attempt) => attempt.flags, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'attempt_id' })
-  attempt: Attempt;
 }

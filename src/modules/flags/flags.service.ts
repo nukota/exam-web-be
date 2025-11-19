@@ -21,12 +21,14 @@ export class FlagsService {
     return await this.flagRepository.find();
   }
 
-  async findOne(id: string): Promise<Flag> {
+  async findOne(userId: string, questionId: string): Promise<Flag> {
     const flag = await this.flagRepository.findOne({
-      where: { flag_id: id },
+      where: { user_id: userId, question_id: questionId },
     });
     if (!flag) {
-      throw new NotFoundException(`Flag with ID ${id} not found`);
+      throw new NotFoundException(
+        `Flag not found for user ${userId} and question ${questionId}`,
+      );
     }
     return flag;
   }
@@ -37,28 +39,31 @@ export class FlagsService {
     });
   }
 
-  async findByAttemptId(attemptId: string): Promise<Flag[]> {
-    return await this.flagRepository.find({
-      where: { attempt_id: attemptId },
-    });
-  }
-
   async findByQuestionId(questionId: string): Promise<Flag[]> {
     return await this.flagRepository.find({
       where: { question_id: questionId },
     });
   }
 
-  async update(id: string, updateDto: UpdateFlagDto): Promise<Flag> {
-    const flag = await this.findOne(id);
+  async update(
+    userId: string,
+    questionId: string,
+    updateDto: UpdateFlagDto,
+  ): Promise<Flag> {
+    const flag = await this.findOne(userId, questionId);
     Object.assign(flag, updateDto);
     return await this.flagRepository.save(flag);
   }
 
-  async remove(id: string): Promise<void> {
-    const result = await this.flagRepository.delete(id);
+  async remove(userId: string, questionId: string): Promise<void> {
+    const result = await this.flagRepository.delete({
+      user_id: userId,
+      question_id: questionId,
+    });
     if (result.affected === 0) {
-      throw new NotFoundException(`Flag with ID ${id} not found`);
+      throw new NotFoundException(
+        `Flag not found for user ${userId} and question ${questionId}`,
+      );
     }
   }
 }
