@@ -10,11 +10,18 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { ExamsService } from './exams.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import { Exam } from './entities/exam.entity';
+import { AllExamsPageDto, AllExamsPageItemDto } from './dto/all-exams-page.dto';
 
 @ApiTags('exams')
 @Controller('exams')
@@ -24,7 +31,11 @@ export class ExamsController {
   @Post()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new exam' })
-  @ApiResponse({ status: 201, description: 'Exam created successfully', type: Exam })
+  @ApiResponse({
+    status: 201,
+    description: 'Exam created successfully',
+    type: Exam,
+  })
   async create(@Body() createExamDto: CreateExamDto): Promise<Exam> {
     return this.examsService.create(createExamDto);
   }
@@ -32,13 +43,29 @@ export class ExamsController {
   @Get()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all exams' })
-  @ApiQuery({ name: 'teacherId', required: false, description: 'Filter by teacher ID' })
+  @ApiQuery({
+    name: 'teacherId',
+    required: false,
+    description: 'Filter by teacher ID',
+  })
   @ApiResponse({ status: 200, description: 'List of all exams', type: [Exam] })
   async findAll(@Query('teacherId') teacherId?: string): Promise<Exam[]> {
     if (teacherId) {
       return this.examsService.findByTeacherId(teacherId);
     }
     return this.examsService.findAll();
+  }
+
+  @Get('all-exams')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all exams with question count and status' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all exams with metadata',
+    type: [AllExamsPageItemDto],
+  })
+  async getAllExamsPage(): Promise<AllExamsPageDto> {
+    return this.examsService.getAllExamsPage();
   }
 
   @Get('access-code/:code')
@@ -65,7 +92,11 @@ export class ExamsController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an exam' })
-  @ApiResponse({ status: 200, description: 'Exam updated successfully', type: Exam })
+  @ApiResponse({
+    status: 200,
+    description: 'Exam updated successfully',
+    type: Exam,
+  })
   @ApiResponse({ status: 404, description: 'Exam not found' })
   async update(
     @Param('id') id: string,

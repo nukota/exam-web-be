@@ -9,6 +9,11 @@ import { AttemptStatus } from '../../common/enum';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import { Exam } from './entities/exam.entity';
+import {
+  AllExamsPageDto,
+  AllExamsPageItemDto,
+  ExamStatus,
+} from './dto/all-exams-page.dto';
 
 @Injectable()
 export class ExamsService {
@@ -77,15 +82,6 @@ export class ExamsService {
     }
 
     // Check if exam has ended
-    if (!exam.end_at) {
-      return {
-        canRelease: false,
-        reason: 'Exam has no end time set',
-        totalAttempts: exam.attempts.length,
-        gradedAttempts: 0,
-      };
-    }
-
     const now = new Date();
     if (exam.end_at > now) {
       return {
@@ -135,5 +131,51 @@ export class ExamsService {
     const exam = await this.findOne(examId);
     exam.results_released = true;
     return await this.examRepository.save(exam);
+  }
+
+  async getAllExamsPage(): Promise<AllExamsPageDto> {
+    const exams = await this.examRepository.find({
+      relations: ['questions', 'attempts'],
+    });
+
+    const now = new Date();
+
+    return exams.map((exam) => {
+      const questionAmount = exam.questions.length;
+      let status: ExamStatus;
+
+      // Determine exam status
+      if (exam.results_released) {
+        status = 'released';
+      } else if (exam.end_at < now) {
+        // Exam has ended, check if all attempts are graded
+        const submittedOrOverdueAttempts = exam.attempts.filter(
+          (attempt) =>
+            attempt.status === AttemptStatus.SUBMITTED ||
+            attempt.status === AttemptStatus.OVERDUE,
+        );
+        status = submittedOrOverdueAttempts.length === 0 ? 'graded' : 'ended';
+      } else if (exam.start_at && exam.start_at <= now) {
+        status = 'started';
+      } else {
+        status = 'not started';
+      }
+
+      return {
+        exam_id: exam.exam_id,
+        teacher_id: exam.teacher_id,
+        title: exam.title,
+        description: exam.description,
+        type: exam.type,
+        access_code: exam.access_code,
+        start_at: exam.start_at?.toISOString(),
+        end_at: exam.end_at.toISOString(),
+        created_at: exam.created_at.toISOString(),
+        duration_minutes: exam.duration_minutes,
+        results_released: exam.results_released,
+        question_amount: questionAmount,
+        status,
+      } as AllExamsPageItemDto;
+    });
   }
 }

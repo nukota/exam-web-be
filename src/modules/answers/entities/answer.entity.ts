@@ -1,6 +1,6 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Column,
   ManyToOne,
   JoinColumn,
@@ -12,16 +12,12 @@ import { User } from '../../users/entities/user.entity';
 
 @Entity('answers')
 export class Answer {
-  @ApiProperty({ description: 'Answer unique identifier' })
-  @PrimaryGeneratedColumn('uuid')
-  answer_id: string;
-
   @ApiProperty({ description: 'Attempt ID' })
-  @Column({ type: 'uuid' })
+  @PrimaryColumn({ type: 'uuid' })
   attempt_id: string;
 
   @ApiProperty({ description: 'Question ID' })
-  @Column({ type: 'uuid' })
+  @PrimaryColumn({ type: 'uuid' })
   question_id: string;
 
   @ApiProperty({

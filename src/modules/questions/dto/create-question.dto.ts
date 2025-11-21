@@ -14,10 +14,17 @@ export class CreateQuestionDto {
   @IsUUID()
   exam_id: string;
 
-  @ApiProperty({ description: 'Question text', required: false })
+  @ApiProperty({ description: 'Question text' })
+  @IsString()
+  question_text: string;
+
+  @ApiProperty({
+    description: 'Question title (for coding questions)',
+    required: false,
+  })
   @IsString()
   @IsOptional()
-  question_text?: string;
+  title?: string;
 
   @ApiProperty({
     description: 'Question type',
@@ -42,17 +49,26 @@ export class CreateQuestionDto {
   correct_answer?: string[];
 
   @ApiProperty({
-    description: 'Correct answer text (for short_answer questions)',
+    description: 'Correct answer texts (for short_answer questions)',
     required: false,
+    type: [String],
   })
-  @IsString()
+  @IsArray()
+  @IsString({ each: true })
   @IsOptional()
-  correct_answer_text?: string;
+  correct_answer_text?: string[];
 
-  @ApiProperty({ description: 'Coding template', required: false })
-  @IsString()
+  @ApiProperty({
+    description:
+      'Coding templates mapped by programming language, e.g. {"python": "def solution():\\n    pass", "c++": "int main() {}" }',
+    required: false,
+    example: {
+      python: 'def solution():\n    pass',
+      'c++': 'int main() { return 0; }',
+    },
+  })
   @IsOptional()
-  coding_template?: string;
+  coding_template?: Record<string, string>;
 
   @ApiProperty({
     description: 'Programming languages allowed for coding questions',

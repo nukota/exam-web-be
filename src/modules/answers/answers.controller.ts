@@ -70,16 +70,19 @@ export class AnswersController {
     return this.answersService.findAll();
   }
 
-  @Get(':id')
+  @Get(':attemptId/:questionId')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get an answer by ID' })
+  @ApiOperation({ summary: 'Get an answer by attempt ID and question ID' })
   @ApiResponse({ status: 200, description: 'Answer found', type: Answer })
   @ApiResponse({ status: 404, description: 'Answer not found' })
-  async findOne(@Param('id') id: string): Promise<Answer> {
-    return this.answersService.findOne(id);
+  async findOne(
+    @Param('attemptId') attemptId: string,
+    @Param('questionId') questionId: string,
+  ): Promise<Answer> {
+    return this.answersService.findOne(attemptId, questionId);
   }
 
-  @Patch(':id')
+  @Patch(':attemptId/:questionId')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an answer (for grading)' })
   @ApiResponse({
@@ -89,19 +92,23 @@ export class AnswersController {
   })
   @ApiResponse({ status: 404, description: 'Answer not found' })
   async update(
-    @Param('id') id: string,
+    @Param('attemptId') attemptId: string,
+    @Param('questionId') questionId: string,
     @Body() updateDto: UpdateAnswerDto,
   ): Promise<Answer> {
-    return this.answersService.update(id, updateDto);
+    return this.answersService.update(attemptId, questionId, updateDto);
   }
 
-  @Delete(':id')
+  @Delete(':attemptId/:questionId')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an answer' })
   @ApiResponse({ status: 204, description: 'Answer deleted successfully' })
   @ApiResponse({ status: 404, description: 'Answer not found' })
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.answersService.remove(id);
+  async remove(
+    @Param('attemptId') attemptId: string,
+    @Param('questionId') questionId: string,
+  ): Promise<void> {
+    return this.answersService.remove(attemptId, questionId);
   }
 }

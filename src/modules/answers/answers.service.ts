@@ -24,12 +24,14 @@ export class AnswersService {
     return await this.answerRepository.find();
   }
 
-  async findOne(id: string): Promise<Answer> {
+  async findOne(attemptId: string, questionId: string): Promise<Answer> {
     const answer = await this.answerRepository.findOne({
-      where: { answer_id: id },
+      where: { attempt_id: attemptId, question_id: questionId },
     });
     if (!answer) {
-      throw new NotFoundException(`Answer with ID ${id} not found`);
+      throw new NotFoundException(
+        `Answer not found for attempt ${attemptId} and question ${questionId}`,
+      );
     }
     return answer;
   }
@@ -46,8 +48,12 @@ export class AnswersService {
     });
   }
 
-  async update(id: string, updateDto: UpdateAnswerDto): Promise<Answer> {
-    const answer = await this.findOne(id);
+  async update(
+    attemptId: string,
+    questionId: string,
+    updateDto: UpdateAnswerDto,
+  ): Promise<Answer> {
+    const answer = await this.findOne(attemptId, questionId);
 
     Object.assign(answer, updateDto);
 
@@ -59,10 +65,15 @@ export class AnswersService {
     return await this.answerRepository.save(answer);
   }
 
-  async remove(id: string): Promise<void> {
-    const result = await this.answerRepository.delete(id);
+  async remove(attemptId: string, questionId: string): Promise<void> {
+    const result = await this.answerRepository.delete({
+      attempt_id: attemptId,
+      question_id: questionId,
+    });
     if (result.affected === 0) {
-      throw new NotFoundException(`Answer with ID ${id} not found`);
+      throw new NotFoundException(
+        `Answer not found for attempt ${attemptId} and question ${questionId}`,
+      );
     }
   }
 }

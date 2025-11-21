@@ -29,4 +29,5 @@ export enum AttemptStatus {
   SUBMITTED = 'submitted',
   OVERDUE = 'overdue',
   GRADED = 'graded',
+  CANCELLED = 'cancelled',
 }

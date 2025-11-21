@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS exams (
   type VARCHAR(50) NOT NULL CHECK (type IN ('essay', 'multiple_choice', 'coding')),
   access_code VARCHAR(100) UNIQUE NOT NULL,
   start_at TIMESTAMP WITH TIME ZONE,
-  end_at TIMESTAMP WITH TIME ZONE,
+  end_at TIMESTAMP WITH TIME ZONE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   duration_minutes INTEGER,
   results_released BOOLEAN DEFAULT false
@@ -52,13 +52,14 @@ CREATE TABLE IF NOT EXISTS exams (
 CREATE TABLE IF NOT EXISTS questions (
   question_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   exam_id UUID NOT NULL,
-  question_text TEXT,
+  question_text TEXT NOT NULL,
+  title VARCHAR(255), -- title for coding questions (nullable)
   "order" INTEGER DEFAULT 0, -- order of question in exam
   question_type VARCHAR(50) NOT NULL CHECK (question_type IN ('essay', 'single_choice', 'multiple_choice', 'short_answer', 'coding')),
   points FLOAT DEFAULT 1,
   correct_answer UUID[], -- store UUIDs of correct choices for single_choice and multiple_choice questions
-  correct_answer_text TEXT, -- store correct answer text for short_answer questions
-  coding_template VARCHAR(1000),
+  correct_answer_text TEXT[], -- store array of correct answer texts for short_answer questions (multiple possible answers)
+  coding_template JSONB, -- object mapping programming language to template code, e.g. {"python": "def solution():\n    pass"}
   programming_languages programming_language[], -- array of allowed programming languages for coding questions
   image_url VARCHAR(500)
 );
@@ -95,14 +96,14 @@ CREATE TABLE IF NOT EXISTS attempts (
 
 -- Answers table
 CREATE TABLE IF NOT EXISTS answers (
-  answer_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   attempt_id UUID NOT NULL,
   question_id UUID NOT NULL,
   answer_text TEXT, -- or code for coding exams, essay, short_answer
   selected_choices UUID[], -- for single_choice or multiple_choice questions
   score FLOAT, -- null until graded
   graded_by UUID, -- teacher_id if essay or coding exam
-  graded_at TIMESTAMP WITH TIME ZONE
+  graded_at TIMESTAMP WITH TIME ZONE,
+  PRIMARY KEY (attempt_id, question_id)
 );
 
 -- Flags table
@@ -185,10 +186,9 @@ CREATE INDEX idx_attempts_exam_id ON attempts(exam_id);
 CREATE INDEX idx_attempts_user_id ON attempts(user_id);
 CREATE INDEX idx_attempts_status ON attempts(status);
 
-CREATE INDEX idx_answers_attempt_id ON answers(attempt_id);
-CREATE INDEX idx_answers_question_id ON answers(question_id);
+-- Composite primary key (attempt_id, question_id) already provides indexing for answers
 
--- Composite primary key (user_id, question_id) already provides indexing
+-- Composite primary key (user_id, question_id) already provides indexing for flags
 
 -- ==========================
 -- Comments

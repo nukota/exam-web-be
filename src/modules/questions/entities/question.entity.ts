@@ -24,9 +24,16 @@ export class Question {
   @Column({ type: 'uuid' })
   exam_id: string;
 
-  @ApiProperty({ description: 'Question text', required: false })
-  @Column({ type: 'text', nullable: true })
-  question_text?: string;
+  @ApiProperty({ description: 'Question text' })
+  @Column({ type: 'text' })
+  question_text: string;
+
+  @ApiProperty({
+    description: 'Question title (for coding questions)',
+    required: false,
+  })
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  title?: string;
 
   @ApiProperty({ description: 'Order of question in exam', default: 0 })
   @Column({ type: 'int', default: 0 })
@@ -52,15 +59,24 @@ export class Question {
   correct_answer?: string[];
 
   @ApiProperty({
-    description: 'Correct answer text (for short_answer questions)',
+    description: 'Correct answer texts (for short_answer questions)',
     required: false,
+    type: [String],
   })
-  @Column({ type: 'text', nullable: true })
-  correct_answer_text?: string;
+  @Column({ type: 'text', array: true, nullable: true })
+  correct_answer_text?: string[];
 
-  @ApiProperty({ description: 'Coding template', required: false })
-  @Column({ type: 'varchar', length: 1000, nullable: true })
-  coding_template?: string;
+  @ApiProperty({
+    description:
+      'Coding templates mapped by programming language, e.g. {"python": "def solution():\\n    pass", "c++": "int main() {}" }',
+    required: false,
+    example: {
+      python: 'def solution():\n    pass',
+      'c++': 'int main() { return 0; }',
+    },
+  })
+  @Column({ type: 'jsonb', nullable: true })
+  coding_template?: Record<string, string>;
 
   @ApiProperty({
     description: 'Programming languages allowed for coding questions',

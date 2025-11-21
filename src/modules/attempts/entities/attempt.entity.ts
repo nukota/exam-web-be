@@ -75,7 +75,4 @@ export class Attempt {
 
   @OneToMany(() => Answer, (answer) => answer.attempt)
   answers: Answer[];
-
-  @OneToMany(() => Flag, (flag) => flag.attempt)
-  flags: Flag[];
 }

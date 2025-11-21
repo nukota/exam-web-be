@@ -46,9 +46,9 @@ export class Exam {
   @Column({ type: 'timestamp with time zone', nullable: true })
   start_at?: Date;
 
-  @ApiProperty({ description: 'Exam end time', required: false })
-  @Column({ type: 'timestamp with time zone', nullable: true })
-  end_at?: Date;
+  @ApiProperty({ description: 'Exam end time' })
+  @Column({ type: 'timestamp with time zone' })
+  end_at: Date;
 
   @ApiProperty({ description: 'Exam creation timestamp' })
   @CreateDateColumn({ type: 'timestamp with time zone' })

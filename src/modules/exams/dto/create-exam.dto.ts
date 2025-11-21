@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEnum, IsOptional, IsDateString, IsInt, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsDateString,
+  IsInt,
+  IsUUID,
+} from 'class-validator';
 import { ExamType } from '../../../common/enum';
 
 export class CreateExamDto {
@@ -16,9 +23,9 @@ export class CreateExamDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ 
-    description: 'Exam type', 
-    enum: ExamType
+  @ApiProperty({
+    description: 'Exam type',
+    enum: ExamType,
   })
   @IsEnum(ExamType)
   type: ExamType;
@@ -32,10 +39,9 @@ export class CreateExamDto {
   @IsOptional()
   start_at?: string;
 
-  @ApiProperty({ description: 'Exam end time', required: false })
+  @ApiProperty({ description: 'Exam end time' })
   @IsDateString()
-  @IsOptional()
-  end_at?: string;
+  end_at: string;
 
   @ApiProperty({ description: 'Exam duration in minutes', required: false })
   @IsInt()
