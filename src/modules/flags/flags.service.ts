@@ -1,8 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateFlagDto } from './dto/create-flag.dto';
-import { UpdateFlagDto } from './dto/update-flag.dto';
 import { Flag } from './entities/flag.entity';
 
 @Injectable()
@@ -12,58 +10,23 @@ export class FlagsService {
     private readonly flagRepository: Repository<Flag>,
   ) {}
 
-  async create(createDto: CreateFlagDto): Promise<Flag> {
-    const flag = this.flagRepository.create(createDto);
-    return await this.flagRepository.save(flag);
-  }
-
-  async findAll(): Promise<Flag[]> {
-    return await this.flagRepository.find();
-  }
-
-  async findOne(userId: string, questionId: string): Promise<Flag> {
-    const flag = await this.flagRepository.findOne({
-      where: { user_id: userId, question_id: questionId },
-    });
-    if (!flag) {
-      throw new NotFoundException(
-        `Flag not found for user ${userId} and question ${questionId}`,
-      );
-    }
-    return flag;
-  }
-
-  async findByUserId(userId: string): Promise<Flag[]> {
-    return await this.flagRepository.find({
-      where: { user_id: userId },
-    });
-  }
-
-  async findByQuestionId(questionId: string): Promise<Flag[]> {
-    return await this.flagRepository.find({
-      where: { question_id: questionId },
-    });
-  }
-
-  async update(
-    userId: string,
-    questionId: string,
-    updateDto: UpdateFlagDto,
-  ): Promise<Flag> {
-    const flag = await this.findOne(userId, questionId);
-    Object.assign(flag, updateDto);
-    return await this.flagRepository.save(flag);
-  }
-
-  async remove(userId: string, questionId: string): Promise<void> {
-    const result = await this.flagRepository.delete({
+  async createBulk(userId: string, questionIds: string[]): Promise<Flag[]> {
+    const flags = questionIds.map((question_id) => ({
       user_id: userId,
-      question_id: questionId,
+      question_id: question_id,
+    }));
+
+    const flagEntities = this.flagRepository.create(flags);
+    return await this.flagRepository.save(flagEntities);
+  }
+
+  async findByUserAndExamId(userId: string, examId: string): Promise<Flag[]> {
+    return await this.flagRepository.find({
+      where: {
+        user_id: userId,
+        question: { exam_id: examId },
+      },
+      relations: ['question'],
     });
-    if (result.affected === 0) {
-      throw new NotFoundException(
-        `Flag not found for user ${userId} and question ${questionId}`,
-      );
-    }
   }
 }

@@ -12,7 +12,7 @@ import { User } from '../users/entities/user.entity';
   imports: [UsersModule, TypeOrmModule.forFeature([User])],
   controllers: [AuthController],
   providers: [FirebaseAuthGuard],
-  exports: [FirebaseAuthGuard],
+  exports: [FirebaseAuthGuard, TypeOrmModule],
 })
 export class AuthModule implements OnModuleInit {
   constructor(private configService: ConfigService) {}

@@ -111,7 +111,6 @@ CREATE TABLE IF NOT EXISTS flags (
   user_id UUID NOT NULL,
   question_id UUID NOT NULL,
   flagged_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  note TEXT, -- optional note the user can add when flagging a question
   PRIMARY KEY (user_id, question_id)
 );
 
