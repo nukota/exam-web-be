@@ -1,13 +1,15 @@
 import { Module, Global, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { initializeFirebaseAdmin } from './firebase-admin.config';
 import { FirebaseAuthGuard } from './firebase-auth.guard';
 import { AuthController } from './auth.controller';
-import { UsersModule } from '../modules/users/users.module';
+import { UsersModule } from '../users/users.module';
+import { User } from '../users/entities/user.entity';
 
 @Global()
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, TypeOrmModule.forFeature([User])],
   controllers: [AuthController],
   providers: [FirebaseAuthGuard],
   exports: [FirebaseAuthGuard],

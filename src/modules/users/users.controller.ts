@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,9 +19,12 @@ import {
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
+import { CurrentUser, AuthUser } from '../auth/decorators/user.decorator';
 
 @ApiTags('users')
 @Controller('users')
+@UseGuards(FirebaseAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -46,7 +50,7 @@ export class UsersController {
     type: [User],
   })
   async findAll(): Promise<User[]> {
-    return this.usersService.findAll();
+    return this.usersService.findAllStudents();
   }
 
   @Get(':id')
@@ -62,9 +66,9 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch('me')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update a user' })
+  @ApiOperation({ summary: 'Update current user profile' })
   @ApiResponse({
     status: 200,
     description: 'User updated successfully',
@@ -72,10 +76,10 @@ export class UsersController {
   })
   @ApiResponse({ status: 404, description: 'User not found' })
   async update(
-    @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser('user_id') currentUserId: string,
   ): Promise<User> {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(currentUserId, updateUserDto);
   }
 
   @Delete(':id')
@@ -106,9 +110,7 @@ export class UsersController {
     },
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async deleteUser(
-    @Param('id') id: string,
-  ): Promise<{
+  async deleteUser(@Param('id') id: string): Promise<{
     message: string;
     deletedFromDb: boolean;
     deletedFromFirebase: boolean;
@@ -135,16 +137,13 @@ export class UsersController {
       },
     },
   })
-  @ApiResponse({ status: 403, description: 'Invalid confirmation code' })
-  async deleteAllUsers(
-    @Body('confirmationCode') confirmationCode: string,
-  ): Promise<{
+  async deleteAllUsers(): Promise<{
     message: string;
     totalUsers: number;
     deletedFromDb: number;
     deletedFromFirebase: number;
     firebaseErrors: number;
   }> {
-    return this.usersService.deleteAllUsers(confirmationCode);
+    return this.usersService.deleteAllUsers();
   }
 }

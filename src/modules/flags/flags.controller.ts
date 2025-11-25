@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,9 +22,11 @@ import { FlagsService } from './flags.service';
 import { CreateFlagDto } from './dto/create-flag.dto';
 import { UpdateFlagDto } from './dto/update-flag.dto';
 import { Flag } from './entities/flag.entity';
+import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 
 @ApiTags('flags')
 @Controller('flags')
+@UseGuards(FirebaseAuthGuard)
 export class FlagsController {
   constructor(private readonly flagsService: FlagsService) {}
 

@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,9 +23,12 @@ import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
 import { Exam } from './entities/exam.entity';
 import { AllExamsPageDto, AllExamsPageItemDto } from './dto/all-exams-page.dto';
+import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
+import { CurrentUser, AuthUser } from '../auth/decorators/user.decorator';
 
 @ApiTags('exams')
 @Controller('exams')
+@UseGuards(FirebaseAuthGuard)
 export class ExamsController {
   constructor(private readonly examsService: ExamsService) {}
 

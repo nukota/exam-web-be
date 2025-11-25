@@ -1,29 +1,67 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { CodingTestCasesService } from './coding-test-cases.service';
 import { CreateCodingTestCaseDto } from './dto/create-coding-test-case.dto';
 import { UpdateCodingTestCaseDto } from './dto/update-coding-test-case.dto';
 import { CodingTestCase } from './entities/coding-test-case.entity';
+import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 
 @ApiTags('coding-test-cases')
 @Controller('coding-test-cases')
+@UseGuards(FirebaseAuthGuard)
 export class CodingTestCasesController {
-  constructor(private readonly codingTestCasesService: CodingTestCasesService) {}
+  constructor(
+    private readonly codingTestCasesService: CodingTestCasesService,
+  ) {}
 
   @Post()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new test case' })
-  @ApiResponse({ status: 201, description: 'Test case created successfully', type: CodingTestCase })
-  async create(@Body() createDto: CreateCodingTestCaseDto): Promise<CodingTestCase> {
+  @ApiResponse({
+    status: 201,
+    description: 'Test case created successfully',
+    type: CodingTestCase,
+  })
+  async create(
+    @Body() createDto: CreateCodingTestCaseDto,
+  ): Promise<CodingTestCase> {
     return this.codingTestCasesService.create(createDto);
   }
 
   @Get()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all test cases' })
-  @ApiQuery({ name: 'questionId', required: false, description: 'Filter by question ID' })
-  @ApiResponse({ status: 200, description: 'List of all test cases', type: [CodingTestCase] })
-  async findAll(@Query('questionId') questionId?: string): Promise<CodingTestCase[]> {
+  @ApiQuery({
+    name: 'questionId',
+    required: false,
+    description: 'Filter by question ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all test cases',
+    type: [CodingTestCase],
+  })
+  async findAll(
+    @Query('questionId') questionId?: string,
+  ): Promise<CodingTestCase[]> {
     if (questionId) {
       return this.codingTestCasesService.findByQuestionId(questionId);
     }
@@ -33,7 +71,11 @@ export class CodingTestCasesController {
   @Get(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get a test case by ID' })
-  @ApiResponse({ status: 200, description: 'Test case found', type: CodingTestCase })
+  @ApiResponse({
+    status: 200,
+    description: 'Test case found',
+    type: CodingTestCase,
+  })
   @ApiResponse({ status: 404, description: 'Test case not found' })
   async findOne(@Param('id') id: string): Promise<CodingTestCase> {
     return this.codingTestCasesService.findOne(id);
@@ -42,9 +84,16 @@ export class CodingTestCasesController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a test case' })
-  @ApiResponse({ status: 200, description: 'Test case updated successfully', type: CodingTestCase })
+  @ApiResponse({
+    status: 200,
+    description: 'Test case updated successfully',
+    type: CodingTestCase,
+  })
   @ApiResponse({ status: 404, description: 'Test case not found' })
-  async update(@Param('id') id: string, @Body() updateDto: UpdateCodingTestCaseDto): Promise<CodingTestCase> {
+  async update(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateCodingTestCaseDto,
+  ): Promise<CodingTestCase> {
     return this.codingTestCasesService.update(id, updateDto);
   }
 

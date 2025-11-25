@@ -1,7 +1,19 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { UsersService } from '../modules/users/users.service';
-import { GetUser } from './get-user.decorator';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { UsersService } from '../users/users.service';
+import { GetUser } from './decorators/get-user.decorator';
 import { FirebaseAuthGuard } from './firebase-auth.guard';
 
 @ApiTags('auth')
@@ -15,13 +27,16 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Sync or create user from Firebase authentication' })
   @ApiResponse({ status: 200, description: 'User synced successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid Firebase token' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid Firebase token',
+  })
   async syncUser(@GetUser() firebaseUser: any) {
     const { email, name } = firebaseUser;
-    
+
     // Check if user exists by email
     let user = await this.usersService.findByEmail(email);
-    
+
     if (!user) {
       // Create new user if not exists
       user = await this.usersService.create({

@@ -22,8 +22,10 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+  async findAllStudents(): Promise<User[]> {
+    return await this.userRepository.find({
+      where: { role: 'student' as any },
+    });
   }
 
   async findOne(id: string): Promise<User> {
@@ -75,9 +77,7 @@ export class UsersService {
    * @param id - User ID (UUID)
    * @returns Object with deletion status
    */
-  async deleteUser(
-    id: string,
-  ): Promise<{
+  async deleteUser(id: string): Promise<{
     message: string;
     deletedFromDb: boolean;
     deletedFromFirebase: boolean;
@@ -133,22 +133,15 @@ export class UsersService {
   /**
    * Delete all users from both database and Firebase
    * WARNING: This is a destructive operation!
-   * @param confirmationCode - Must pass 'DELETE_ALL_USERS' to execute
    * @returns Object with deletion statistics
    */
-  async deleteAllUsers(confirmationCode: string): Promise<{
+  async deleteAllUsers(): Promise<{
     message: string;
     totalUsers: number;
     deletedFromDb: number;
     deletedFromFirebase: number;
     firebaseErrors: number;
   }> {
-    if (confirmationCode !== 'DELETE_ALL_USERS') {
-      throw new InternalServerErrorException(
-        'Invalid confirmation code. Operation cancelled.',
-      );
-    }
-
     // Get all users
     const users = await this.userRepository.find();
     const totalUsers = users.length;
