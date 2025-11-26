@@ -92,10 +92,6 @@ export class Question {
   })
   programming_languages?: ProgrammingLanguage[];
 
-  @ApiProperty({ description: 'Image URL', required: false })
-  @Column({ type: 'varchar', length: 500, nullable: true })
-  image_url?: string;
-
   @ManyToOne(() => Exam, (exam) => exam.questions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'exam_id' })
   exam: Exam;

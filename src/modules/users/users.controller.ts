@@ -20,7 +20,7 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
-import { CurrentUser, AuthUser } from '../auth/decorators/user.decorator';
+import { CurrentUser } from '../auth/decorators/user.decorator';
 
 @ApiTags('users')
 @Controller('users')
@@ -50,20 +50,19 @@ export class UsersController {
     type: [User],
   })
   async findAll(): Promise<User[]> {
-    return this.usersService.findAllStudents();
+    return this.usersService.findAll();
   }
 
-  @Get(':id')
+  @Get('students')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a user by ID' })
+  @ApiOperation({ summary: 'Get all student users' })
   @ApiResponse({
     status: 200,
-    description: 'User found',
-    type: User,
+    description: 'List of all student users',
+    type: [User],
   })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async findOne(@Param('id') id: string): Promise<User> {
-    return this.usersService.findOne(id);
+  async findAllStudents(): Promise<User[]> {
+    return this.usersService.findAllStudents();
   }
 
   @Patch('me')

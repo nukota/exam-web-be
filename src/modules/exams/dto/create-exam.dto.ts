@@ -5,15 +5,10 @@ import {
   IsOptional,
   IsDateString,
   IsInt,
-  IsUUID,
 } from 'class-validator';
 import { ExamType } from '../../../common/enum';
 
 export class CreateExamDto {
-  @ApiProperty({ description: 'Teacher ID who created the exam' })
-  @IsUUID()
-  teacher_id: string;
-
   @ApiProperty({ description: 'Exam title', required: false })
   @IsString()
   title: string;
@@ -29,10 +24,6 @@ export class CreateExamDto {
   })
   @IsEnum(ExamType)
   type: ExamType;
-
-  @ApiProperty({ description: 'Access code for students' })
-  @IsString()
-  access_code: string;
 
   @ApiProperty({ description: 'Exam start time', required: false })
   @IsDateString()

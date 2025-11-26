@@ -28,6 +28,10 @@ export class UsersService {
     });
   }
 
+  async findAll(): Promise<User[]> {
+    return await this.userRepository.find();
+  }
+
   async findOne(id: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { user_id: id } });
     if (!user) {
@@ -72,11 +76,6 @@ export class UsersService {
     }
   }
 
-  /**
-   * Completely delete a user from both database and Firebase
-   * @param id - User ID (UUID)
-   * @returns Object with deletion status
-   */
   async deleteUser(id: string): Promise<{
     message: string;
     deletedFromDb: boolean;
@@ -130,11 +129,6 @@ export class UsersService {
     };
   }
 
-  /**
-   * Delete all users from both database and Firebase
-   * WARNING: This is a destructive operation!
-   * @returns Object with deletion statistics
-   */
   async deleteAllUsers(): Promise<{
     message: string;
     totalUsers: number;

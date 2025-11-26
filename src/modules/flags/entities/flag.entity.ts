@@ -24,13 +24,6 @@ export class Flag {
   @CreateDateColumn({ type: 'timestamp with time zone' })
   flagged_at: Date;
 
-  @ApiProperty({
-    description: 'Optional note about why the question was flagged',
-    required: false,
-  })
-  @Column({ type: 'text', nullable: true })
-  note?: string;
-
   @ManyToOne(() => User, (user) => user.flags, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;

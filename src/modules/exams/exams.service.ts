@@ -14,16 +14,32 @@ import {
   AllExamsPageItemDto,
   ExamStatus,
 } from './dto/all-exams-page.dto';
+import { QuestionsService } from '../questions/questions.service';
 
 @Injectable()
 export class ExamsService {
   constructor(
     @InjectRepository(Exam)
     private readonly examRepository: Repository<Exam>,
+    private readonly questionsService: QuestionsService,
   ) {}
 
-  async create(createExamDto: CreateExamDto): Promise<Exam> {
-    const exam = this.examRepository.create(createExamDto);
+  private generateAccessCode(): string {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += letters.charAt(Math.floor(Math.random() * letters.length));
+    }
+    return result;
+  }
+
+  async create(createExamDto: CreateExamDto, teacherId: string): Promise<Exam> {
+    const examData = {
+      ...createExamDto,
+      teacher_id: teacherId,
+      access_code: this.generateAccessCode(),
+    };
+    const exam = this.examRepository.create(examData);
     return await this.examRepository.save(exam);
   }
 
@@ -55,8 +71,20 @@ export class ExamsService {
 
   async update(id: string, updateExamDto: UpdateExamDto): Promise<Exam> {
     const exam = await this.findOne(id);
-    Object.assign(exam, updateExamDto);
-    return await this.examRepository.save(exam);
+
+    // Extract questions from the DTO
+    const { questions, ...examData } = updateExamDto;
+
+    // Update exam data
+    Object.assign(exam, examData);
+    const updatedExam = await this.examRepository.save(exam);
+
+    // Update questions if provided
+    if (questions) {
+      await this.questionsService.updateQuestionsForExam(id, questions);
+    }
+
+    return updatedExam;
   }
 
   async remove(id: string): Promise<void> {

@@ -24,7 +24,7 @@ import { UpdateExamDto } from './dto/update-exam.dto';
 import { Exam } from './entities/exam.entity';
 import { AllExamsPageDto, AllExamsPageItemDto } from './dto/all-exams-page.dto';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
-import { CurrentUser, AuthUser } from '../auth/decorators/user.decorator';
+import { CurrentUser } from '../auth/decorators/user.decorator';
 
 @ApiTags('exams')
 @Controller('exams')
@@ -40,8 +40,11 @@ export class ExamsController {
     description: 'Exam created successfully',
     type: Exam,
   })
-  async create(@Body() createExamDto: CreateExamDto): Promise<Exam> {
-    return this.examsService.create(createExamDto);
+  async create(
+    @Body() createExamDto: CreateExamDto,
+    @CurrentUser('user_id') teacherId: string,
+  ): Promise<Exam> {
+    return this.examsService.create(createExamDto, teacherId);
   }
 
   @Get()
