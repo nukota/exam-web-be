@@ -17,6 +17,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiQuery,
+  ApiParam,
 } from '@nestjs/swagger';
 import { AnswersService } from './answers.service';
 import { CreateAnswerDto } from './dto/create-answer.dto';
@@ -49,11 +50,13 @@ export class AnswersController {
     name: 'attemptId',
     required: false,
     description: 'Filter by attempt ID',
+    example: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
   })
   @ApiQuery({
     name: 'questionId',
     required: false,
     description: 'Filter by question ID',
+    example: '8d4f3289-1234-56ab-cdef-1234567890ab',
   })
   @ApiResponse({
     status: 200,
@@ -76,6 +79,16 @@ export class AnswersController {
   @Get(':attemptId/:questionId')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get an answer by attempt ID and question ID' })
+  @ApiParam({
+    name: 'attemptId',
+    description: 'Attempt UUID',
+    example: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
+  })
+  @ApiParam({
+    name: 'questionId',
+    description: 'Question UUID',
+    example: '8d4f3289-1234-56ab-cdef-1234567890ab',
+  })
   @ApiResponse({ status: 200, description: 'Answer found', type: Answer })
   @ApiResponse({ status: 404, description: 'Answer not found' })
   async findOne(
@@ -88,6 +101,16 @@ export class AnswersController {
   @Patch(':attemptId/:questionId')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an answer (for grading)' })
+  @ApiParam({
+    name: 'attemptId',
+    description: 'Attempt UUID',
+    example: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
+  })
+  @ApiParam({
+    name: 'questionId',
+    description: 'Question UUID',
+    example: '8d4f3289-1234-56ab-cdef-1234567890ab',
+  })
   @ApiResponse({
     status: 200,
     description: 'Answer updated successfully',
@@ -106,6 +129,16 @@ export class AnswersController {
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an answer' })
+  @ApiParam({
+    name: 'attemptId',
+    description: 'Attempt UUID',
+    example: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
+  })
+  @ApiParam({
+    name: 'questionId',
+    description: 'Question UUID',
+    example: '8d4f3289-1234-56ab-cdef-1234567890ab',
+  })
   @ApiResponse({ status: 204, description: 'Answer deleted successfully' })
   @ApiResponse({ status: 404, description: 'Answer not found' })
   async remove(

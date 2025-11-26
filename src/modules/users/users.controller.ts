@@ -15,6 +15,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiParam,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -31,6 +32,11 @@ export class UsersController {
   @Post(':id/promote-admin')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Promote a user to admin role' })
+  @ApiParam({
+    name: 'id',
+    description: 'User UUID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   @ApiResponse({
     status: 200,
     description: 'User promoted to admin successfully',
@@ -85,6 +91,11 @@ export class UsersController {
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a user from database only' })
+  @ApiParam({
+    name: 'id',
+    description: 'User UUID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   @ApiResponse({ status: 204, description: 'User deleted successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async remove(@Param('id') id: string): Promise<void> {
@@ -95,6 +106,11 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Completely delete a user from both database and Firebase',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'User UUID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiResponse({
     status: 200,

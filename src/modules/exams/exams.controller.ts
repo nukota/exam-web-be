@@ -17,6 +17,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiQuery,
+  ApiParam,
 } from '@nestjs/swagger';
 import { ExamsService } from './exams.service';
 import { CreateExamDto } from './dto/create-exam.dto';
@@ -54,6 +55,7 @@ export class ExamsController {
     name: 'teacherId',
     required: false,
     description: 'Filter by teacher ID',
+    example: 'b07h6512-4567-89de-f012-456789012cde',
   })
   @ApiResponse({ status: 200, description: 'List of all exams', type: [Exam] })
   async findAll(@Query('teacherId') teacherId?: string): Promise<Exam[]> {
@@ -77,6 +79,11 @@ export class ExamsController {
 
   @Get('access-code/:code')
   @ApiOperation({ summary: 'Get exam by access code' })
+  @ApiParam({
+    name: 'code',
+    description: 'Exam access code',
+    example: 'EXAM2025ABC',
+  })
   @ApiResponse({ status: 200, description: 'Exam found', type: Exam })
   @ApiResponse({ status: 404, description: 'Exam not found' })
   async findByAccessCode(@Param('code') code: string): Promise<Exam> {
@@ -90,6 +97,11 @@ export class ExamsController {
   @Get(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get an exam by ID' })
+  @ApiParam({
+    name: 'id',
+    description: 'Exam UUID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
   @ApiResponse({ status: 200, description: 'Exam found', type: Exam })
   @ApiResponse({ status: 404, description: 'Exam not found' })
   async findOne(@Param('id') id: string): Promise<Exam> {
@@ -99,6 +111,11 @@ export class ExamsController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an exam' })
+  @ApiParam({
+    name: 'id',
+    description: 'Exam UUID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
   @ApiResponse({
     status: 200,
     description: 'Exam updated successfully',
@@ -116,6 +133,11 @@ export class ExamsController {
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an exam' })
+  @ApiParam({
+    name: 'id',
+    description: 'Exam UUID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
   @ApiResponse({ status: 204, description: 'Exam deleted successfully' })
   @ApiResponse({ status: 404, description: 'Exam not found' })
   async remove(@Param('id') id: string): Promise<void> {

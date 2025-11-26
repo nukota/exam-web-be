@@ -17,6 +17,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiQuery,
+  ApiParam,
 } from '@nestjs/swagger';
 import { AttemptsService } from './attempts.service';
 import { CreateAttemptDto } from './dto/create-attempt.dto';
@@ -49,11 +50,13 @@ export class AttemptsController {
     name: 'examId',
     required: false,
     description: 'Filter by exam ID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @ApiQuery({
     name: 'userId',
     required: false,
     description: 'Filter by user ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiResponse({
     status: 200,
@@ -76,6 +79,11 @@ export class AttemptsController {
   @Get(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get an attempt by ID' })
+  @ApiParam({
+    name: 'id',
+    description: 'Attempt UUID',
+    example: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
+  })
   @ApiResponse({ status: 200, description: 'Attempt found', type: Attempt })
   @ApiResponse({ status: 404, description: 'Attempt not found' })
   async findOne(@Param('id') id: string): Promise<Attempt> {
@@ -85,6 +93,11 @@ export class AttemptsController {
   @Patch(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an attempt' })
+  @ApiParam({
+    name: 'id',
+    description: 'Attempt UUID',
+    example: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
+  })
   @ApiResponse({
     status: 200,
     description: 'Attempt updated successfully',
@@ -102,6 +115,11 @@ export class AttemptsController {
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an attempt' })
+  @ApiParam({
+    name: 'id',
+    description: 'Attempt UUID',
+    example: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
+  })
   @ApiResponse({ status: 204, description: 'Attempt deleted successfully' })
   @ApiResponse({ status: 404, description: 'Attempt not found' })
   async remove(@Param('id') id: string): Promise<void> {

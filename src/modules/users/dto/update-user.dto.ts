@@ -3,8 +3,8 @@ import { IsString, IsOptional, IsDateString } from 'class-validator';
 
 export class UpdateUserDto {
   @ApiProperty({
-    description: 'Date of birth (student only)',
-    example: '2000-01-01',
+    description: 'Date of birth in ISO 8601 format (student only)',
+    example: '2000-01-15',
     required: false,
   })
   @IsDateString()
@@ -13,7 +13,7 @@ export class UpdateUserDto {
 
   @ApiProperty({
     description: 'Class name (student only)',
-    example: 'Class 10A',
+    example: '10A - Science Stream',
     required: false,
   })
   @IsString()
