@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateAttemptDto } from './dto/create-attempt.dto';
-import { UpdateAttemptDto } from './dto/update-attempt.dto';
 import { Attempt } from './entities/attempt.entity';
+import { AttemptStatus } from '../../common/enum';
+import { CreateAttemptDto } from './dto/create-attempt.dto';
 
 @Injectable()
 export class AttemptsService {
@@ -15,6 +19,46 @@ export class AttemptsService {
   async create(createDto: CreateAttemptDto): Promise<Attempt> {
     const attempt = this.attemptRepository.create(createDto);
     return await this.attemptRepository.save(attempt);
+  }
+
+  async joinExam(examId: string, userId: string): Promise<Attempt> {
+    // Check if student already has an attempt for this exam
+    const existingAttempt = await this.attemptRepository.findOne({
+      where: { exam_id: examId, user_id: userId },
+    });
+
+    if (existingAttempt) {
+      throw new BadRequestException('You have already joined this exam');
+    }
+
+    // Create new attempt
+    const attempt = this.attemptRepository.create({
+      exam_id: examId,
+      user_id: userId,
+      status: AttemptStatus.NOT_STARTED,
+    });
+
+    return await this.attemptRepository.save(attempt);
+  }
+
+  async leaveExam(examId: string, userId: string): Promise<void> {
+    const attempt = await this.attemptRepository.findOne({
+      where: { exam_id: examId, user_id: userId },
+    });
+
+    if (!attempt) {
+      throw new NotFoundException('You have not joined this exam');
+    }
+
+    // Only allow leaving if the attempt hasn't been submitted
+    if (
+      attempt.status === AttemptStatus.SUBMITTED ||
+      attempt.status === AttemptStatus.GRADED
+    ) {
+      throw new BadRequestException('Cannot leave exam after submission');
+    }
+
+    await this.attemptRepository.remove(attempt);
   }
 
   async findAll(): Promise<Attempt[]> {
@@ -29,24 +73,6 @@ export class AttemptsService {
       throw new NotFoundException(`Attempt with ID ${id} not found`);
     }
     return attempt;
-  }
-
-  async findByExamId(examId: string): Promise<Attempt[]> {
-    return await this.attemptRepository.find({
-      where: { exam_id: examId },
-    });
-  }
-
-  async findByUserId(userId: string): Promise<Attempt[]> {
-    return await this.attemptRepository.find({
-      where: { user_id: userId },
-    });
-  }
-
-  async update(id: string, updateDto: UpdateAttemptDto): Promise<Attempt> {
-    const attempt = await this.findOne(id);
-    Object.assign(attempt, updateDto);
-    return await this.attemptRepository.save(attempt);
   }
 
   async remove(id: string): Promise<void> {

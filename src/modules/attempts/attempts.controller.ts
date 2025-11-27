@@ -20,10 +20,9 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { AttemptsService } from './attempts.service';
-import { CreateAttemptDto } from './dto/create-attempt.dto';
-import { UpdateAttemptDto } from './dto/update-attempt.dto';
 import { Attempt } from './entities/attempt.entity';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
+import { CurrentUser } from '../auth/decorators/user.decorator';
 
 @ApiTags('attempts')
 @Controller('attempts')
@@ -31,98 +30,65 @@ import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 export class AttemptsController {
   constructor(private readonly attemptsService: AttemptsService) {}
 
-  @Post()
+  @Post('join/:examId')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a new exam attempt' })
-  @ApiResponse({
-    status: 201,
-    description: 'Attempt created successfully',
-    type: Attempt,
+  @ApiOperation({
+    summary: 'Join an exam (create initial attempt for student)',
   })
-  async create(@Body() createDto: CreateAttemptDto): Promise<Attempt> {
-    return this.attemptsService.create(createDto);
-  }
-
-  @Get()
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all exam attempts' })
-  @ApiQuery({
+  @ApiParam({
     name: 'examId',
-    required: false,
-    description: 'Filter by exam ID',
+    description: 'Exam UUID to join',
     example: '550e8400-e29b-41d4-a716-446655440000',
   })
-  @ApiQuery({
-    name: 'userId',
-    required: false,
-    description: 'Filter by user ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
   @ApiResponse({
-    status: 200,
-    description: 'List of all attempts',
-    type: [Attempt],
-  })
-  async findAll(
-    @Query('examId') examId?: string,
-    @Query('userId') userId?: string,
-  ): Promise<Attempt[]> {
-    if (examId) {
-      return this.attemptsService.findByExamId(examId);
-    }
-    if (userId) {
-      return this.attemptsService.findByUserId(userId);
-    }
-    return this.attemptsService.findAll();
-  }
-
-  @Get(':id')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get an attempt by ID' })
-  @ApiParam({
-    name: 'id',
-    description: 'Attempt UUID',
-    example: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
-  })
-  @ApiResponse({ status: 200, description: 'Attempt found', type: Attempt })
-  @ApiResponse({ status: 404, description: 'Attempt not found' })
-  async findOne(@Param('id') id: string): Promise<Attempt> {
-    return this.attemptsService.findOne(id);
-  }
-
-  @Patch(':id')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update an attempt' })
-  @ApiParam({
-    name: 'id',
-    description: 'Attempt UUID',
-    example: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Attempt updated successfully',
+    status: 201,
+    description: 'Successfully joined the exam',
     type: Attempt,
   })
-  @ApiResponse({ status: 404, description: 'Attempt not found' })
-  async update(
-    @Param('id') id: string,
-    @Body() updateDto: UpdateAttemptDto,
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Already joined this exam',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing Firebase token',
+  })
+  async joinExam(
+    @Param('examId') examId: string,
+    @CurrentUser('user_id') userId: string,
   ): Promise<Attempt> {
-    return this.attemptsService.update(id, updateDto);
+    return this.attemptsService.joinExam(examId, userId);
   }
 
-  @Delete(':id')
+  @Delete('leave/:examId')
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete an attempt' })
+  @ApiOperation({ summary: 'Leave an exam (delete attempt for student)' })
   @ApiParam({
-    name: 'id',
-    description: 'Attempt UUID',
-    example: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
+    name: 'examId',
+    description: 'Exam UUID to leave',
+    example: '550e8400-e29b-41d4-a716-446655440000',
   })
-  @ApiResponse({ status: 204, description: 'Attempt deleted successfully' })
-  @ApiResponse({ status: 404, description: 'Attempt not found' })
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.attemptsService.remove(id);
+  @ApiResponse({
+    status: 204,
+    description: 'Successfully left the exam',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Cannot leave exam after submission',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Not Found - You have not joined this exam',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing Firebase token',
+  })
+  async leaveExam(
+    @Param('examId') examId: string,
+    @CurrentUser('user_id') userId: string,
+  ): Promise<void> {
+    return this.attemptsService.leaveExam(examId, userId);
   }
 }
