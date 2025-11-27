@@ -30,15 +30,15 @@ import { CurrentUser } from '../auth/decorators/user.decorator';
 export class AttemptsController {
   constructor(private readonly attemptsService: AttemptsService) {}
 
-  @Post('join/:examId')
+  @Post('join/:accessCode')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Join an exam (create initial attempt for student)',
   })
   @ApiParam({
-    name: 'examId',
-    description: 'Exam UUID to join',
-    example: '550e8400-e29b-41d4-a716-446655440000',
+    name: 'accessCode',
+    description: 'Exam access code to join',
+    example: 'EXAM2025ABC',
   })
   @ApiResponse({
     status: 201,
@@ -50,14 +50,18 @@ export class AttemptsController {
     description: 'Bad Request - Already joined this exam',
   })
   @ApiResponse({
+    status: 404,
+    description: 'Not Found - Exam with access code not found',
+  })
+  @ApiResponse({
     status: 401,
     description: 'Unauthorized - Invalid or missing Firebase token',
   })
   async joinExam(
-    @Param('examId') examId: string,
+    @Param('accessCode') accessCode: string,
     @CurrentUser('user_id') userId: string,
   ): Promise<Attempt> {
-    return this.attemptsService.joinExam(examId, userId);
+    return this.attemptsService.joinExam(accessCode, userId);
   }
 
   @Delete('leave/:examId')

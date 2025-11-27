@@ -8,12 +8,14 @@ import { Repository } from 'typeorm';
 import { Attempt } from './entities/attempt.entity';
 import { AttemptStatus } from '../../common/enum';
 import { CreateAttemptDto } from './dto/create-attempt.dto';
+import { ExamsService } from '../exams/exams.service';
 
 @Injectable()
 export class AttemptsService {
   constructor(
     @InjectRepository(Attempt)
     private readonly attemptRepository: Repository<Attempt>,
+    private readonly examsService: ExamsService,
   ) {}
 
   async create(createDto: CreateAttemptDto): Promise<Attempt> {
@@ -21,10 +23,18 @@ export class AttemptsService {
     return await this.attemptRepository.save(attempt);
   }
 
-  async joinExam(examId: string, userId: string): Promise<Attempt> {
+  async joinExam(accessCode: string, userId: string): Promise<Attempt> {
+    // Find exam by access code
+    const exam = await this.examsService.findByAccessCode(accessCode);
+    if (!exam) {
+      throw new NotFoundException(
+        `Exam with access code ${accessCode} not found`,
+      );
+    }
+
     // Check if student already has an attempt for this exam
     const existingAttempt = await this.attemptRepository.findOne({
-      where: { exam_id: examId, user_id: userId },
+      where: { exam_id: exam.exam_id, user_id: userId },
     });
 
     if (existingAttempt) {
@@ -33,7 +43,7 @@ export class AttemptsService {
 
     // Create new attempt
     const attempt = this.attemptRepository.create({
-      exam_id: examId,
+      exam_id: exam.exam_id,
       user_id: userId,
       status: AttemptStatus.NOT_STARTED,
     });
