@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   HttpCode,
   HttpStatus,
@@ -14,12 +15,35 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from '../users/users.service';
 import { GetUser } from './decorators/get-user.decorator';
+import { CurrentUser } from './decorators/user.decorator';
 import { FirebaseAuthGuard } from './firebase-auth.guard';
+import { User } from '../users/entities/user.entity';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get('me')
+  @UseGuards(FirebaseAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current authenticated user details' })
+  @ApiResponse({
+    status: 200,
+    description: 'Current user details retrieved successfully',
+    type: User,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing Firebase token',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
+  })
+  async getMe(@CurrentUser('user_id') userId: string): Promise<User> {
+    return this.usersService.findOne(userId);
+  }
 
   @Post('sync')
   @UseGuards(FirebaseAuthGuard)
