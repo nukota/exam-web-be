@@ -27,8 +27,11 @@ export class FirebaseAuthGuard implements CanActivate {
     const token = authHeader.substring(7);
 
     try {
-      const decodedToken = await getFirebaseAdmin().auth().verifyIdToken(token);
-
+      const auth = getFirebaseAdmin().auth();
+      const decodedToken = await auth.verifyIdToken(token);
+      const userRecord = await auth.getUser(decodedToken.uid);
+      const displayName = userRecord.displayName;
+      const photoUrl = userRecord.photoURL;
       // Find user in database by email
       const email = decodedToken.email;
       if (!email) {
@@ -37,6 +40,16 @@ export class FirebaseAuthGuard implements CanActivate {
 
       const user = await this.userRepository.findOne({ where: { email } });
       if (!user) {
+        if (request.route?.path === '/auth/sync') {
+          request.user = {
+            email,
+            full_name: displayName,
+            photo_url: photoUrl ?? undefined,
+            firebaseUid: decodedToken.uid,
+            firebase: decodedToken,
+          };
+          return true;
+        }
         throw new UnauthorizedException('User not found in database');
       }
 
@@ -44,6 +57,8 @@ export class FirebaseAuthGuard implements CanActivate {
       request.user = {
         user_id: user.user_id,
         email: user.email,
+        full_name: displayName ?? user.full_name,
+        photo_url: photoUrl ?? user.photo_url,
         role: user.role,
         firebaseUid: decodedToken.uid,
       };

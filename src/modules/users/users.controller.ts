@@ -25,11 +25,11 @@ import { CurrentUser } from '../auth/decorators/user.decorator';
 
 @ApiTags('users')
 @Controller('users')
-@UseGuards(FirebaseAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post(':id/promote-admin')
+  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Promote a user to admin role' })
   @ApiParam({
@@ -48,7 +48,6 @@ export class UsersController {
   }
 
   @Get()
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({
     status: 200,
@@ -60,6 +59,7 @@ export class UsersController {
   }
 
   @Get('students')
+  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all student users' })
   @ApiResponse({
@@ -72,6 +72,7 @@ export class UsersController {
   }
 
   @Patch('me')
+  @UseGuards(FirebaseAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiResponse({
@@ -88,7 +89,6 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a user from database only' })
   @ApiParam({
@@ -103,7 +103,6 @@ export class UsersController {
   }
 
   @Delete(':id/complete')
-  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Completely delete a user from both database and Firebase',
   })
@@ -134,7 +133,6 @@ export class UsersController {
   }
 
   @Post('delete-all')
-  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Delete all users from both database and Firebase (DANGEROUS)',
   })

@@ -56,7 +56,7 @@ export class AuthController {
     description: 'Unauthorized - Invalid Firebase token',
   })
   async syncUser(@GetUser() firebaseUser: any) {
-    const { email, name } = firebaseUser;
+    const { email, full_name, photo_url } = firebaseUser;
 
     // Check if user exists by email
     let user = await this.usersService.findByEmail(email);
@@ -66,8 +66,14 @@ export class AuthController {
       user = await this.usersService.create({
         username: email.split('@')[0], // Use email prefix as username
         email: email,
-        full_name: name || email.split('@')[0],
+        full_name: full_name || email.split('@')[0],
+        photo_url: photo_url,
         role: 'student' as any, // Default role
+      });
+    } else {
+      user = await this.usersService.syncFirebaseProfile(user, {
+        full_name: full_name,
+        photo_url: photo_url,
       });
     }
 

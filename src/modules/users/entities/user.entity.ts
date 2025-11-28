@@ -44,6 +44,14 @@ export class User {
   email?: string;
 
   @ApiProperty({
+    description: 'Profile photo URL',
+    example: 'https://example.com/avatar/johndoe.png',
+    required: false,
+  })
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  photo_url?: string;
+
+  @ApiProperty({
     description: 'User role',
     enum: UserRole,
     example: 'student',

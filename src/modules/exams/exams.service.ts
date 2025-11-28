@@ -43,10 +43,6 @@ export class ExamsService {
     return await this.examRepository.save(exam);
   }
 
-  async findAll(): Promise<Exam[]> {
-    return await this.examRepository.find();
-  }
-
   async findOne(id: string): Promise<Exam> {
     const exam = await this.examRepository.findOne({
       where: { exam_id: id },
@@ -55,12 +51,6 @@ export class ExamsService {
       throw new NotFoundException(`Exam with ID ${id} not found`);
     }
     return exam;
-  }
-
-  async findByTeacherId(teacherId: string): Promise<Exam[]> {
-    return await this.examRepository.find({
-      where: { teacher_id: teacherId },
-    });
   }
 
   async findByAccessCode(accessCode: string): Promise<Exam | null> {

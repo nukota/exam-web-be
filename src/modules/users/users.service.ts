@@ -58,6 +58,29 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
+  async syncFirebaseProfile(
+    user: User,
+    profile: { full_name?: string | null; photo_url?: string | null },
+  ): Promise<User> {
+    let hasChanges = false;
+
+    if (profile.full_name && profile.full_name !== user.full_name) {
+      user.full_name = profile.full_name;
+      hasChanges = true;
+    }
+
+    if (profile.photo_url && profile.photo_url !== user.photo_url) {
+      user.photo_url = profile.photo_url;
+      hasChanges = true;
+    }
+
+    if (hasChanges) {
+      user = await this.userRepository.save(user);
+    }
+
+    return user;
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.userRepository.findOne({ where: { user_id: id } });
     if (!user) {
@@ -167,7 +190,9 @@ export class UsersService {
     }
 
     // Delete all users from database
-    await this.userRepository.delete({});
+    if (users.length > 0) {
+      await this.userRepository.remove(users);
+    }
 
     return {
       message:

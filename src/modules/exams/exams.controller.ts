@@ -48,23 +48,6 @@ export class ExamsController {
     return this.examsService.create(createExamDto, teacherId);
   }
 
-  @Get()
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all exams' })
-  @ApiQuery({
-    name: 'teacherId',
-    required: false,
-    description: 'Filter by teacher ID',
-    example: 'b07h6512-4567-89de-f012-456789012cde',
-  })
-  @ApiResponse({ status: 200, description: 'List of all exams', type: [Exam] })
-  async findAll(@Query('teacherId') teacherId?: string): Promise<Exam[]> {
-    if (teacherId) {
-      return this.examsService.findByTeacherId(teacherId);
-    }
-    return this.examsService.findAll();
-  }
-
   @Get('all-exams')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all exams with question count and status' })
@@ -75,23 +58,6 @@ export class ExamsController {
   })
   async getAllExamsPage(): Promise<AllExamsPageDto> {
     return this.examsService.getAllExamsPage();
-  }
-
-  @Get('access-code/:code')
-  @ApiOperation({ summary: 'Get exam by access code' })
-  @ApiParam({
-    name: 'code',
-    description: 'Exam access code',
-    example: 'EXAM2025ABC',
-  })
-  @ApiResponse({ status: 200, description: 'Exam found', type: Exam })
-  @ApiResponse({ status: 404, description: 'Exam not found' })
-  async findByAccessCode(@Param('code') code: string): Promise<Exam> {
-    const exam = await this.examsService.findByAccessCode(code);
-    if (!exam) {
-      throw new NotFoundException(`Exam with access code ${code} not found`);
-    }
-    return exam;
   }
 
   @Get(':id')
