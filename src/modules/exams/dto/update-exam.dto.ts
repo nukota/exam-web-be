@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateExamDto } from './create-exam.dto';
-import { QuestionInput } from '../../questions/types/question-input.interface';
+import { QuestionInput } from '../../questions/types/question.interface';
 
 export class UpdateExamDto extends PartialType(CreateExamDto) {
   @ApiProperty({

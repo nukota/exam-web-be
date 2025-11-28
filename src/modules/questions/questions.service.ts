@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Question } from './entities/question.entity';
-import { QuestionInput } from './types/question-input.interface';
+import { QuestionInput, QuestionDTO } from './types/question.interface';
 import { ChoicesService } from '../choices/choices.service';
 import { CodingTestCasesService } from '../coding-test-cases/coding-test-cases.service';
 
@@ -20,6 +20,56 @@ export class QuestionsService {
       where: { exam_id: examId },
       order: { order: 'ASC' },
     });
+  }
+
+  async getDetailedQuestionsForExam(examId: string): Promise<QuestionDTO[]> {
+    const questions = await this.findByExamId(examId);
+
+    // Build detailed questions with choices and test cases
+    const detailedQuestions: QuestionDTO[] = await Promise.all(
+      questions.map(async (question) => {
+        const questionDto: QuestionDTO = {
+          question_id: question.question_id,
+          question_text: question.question_text,
+          title: question.title,
+          order: question.order,
+          question_type: question.question_type,
+          points: question.points,
+          correct_answer: question.correct_answer,
+          correct_answer_text: question.correct_answer_text,
+          coding_template: question.coding_template,
+          programming_languages: question.programming_languages,
+        };
+
+        // Get choices if question has them
+        const choices = await this.choicesService.findByQuestionId(
+          question.question_id,
+        );
+        if (choices.length > 0) {
+          questionDto.choices = choices.map((choice) => ({
+            choice_id: choice.choice_id,
+            choice_text: choice.choice_text || '',
+          }));
+        }
+
+        // Get coding test cases if question has them
+        const testCases = await this.codingTestCasesService.findByQuestionId(
+          question.question_id,
+        );
+        if (testCases.length > 0) {
+          questionDto.codingTestCases = testCases.map((tc) => ({
+            test_case_id: tc.test_case_id,
+            input_data: tc.input_data || '',
+            expected_output: tc.expected_output || '',
+            is_hidden: tc.is_hidden,
+          }));
+        }
+
+        return questionDto;
+      }),
+    );
+
+    return detailedQuestions;
   }
 
   async updateQuestionsForExam(

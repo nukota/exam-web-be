@@ -14,6 +14,7 @@ import {
   AllExamsPageItemDto,
   ExamStatus,
 } from './dto/all-exams-page.dto';
+import { DetailedExamDto } from './dto/detailed-exam.dto';
 import { QuestionsService } from '../questions/questions.service';
 
 @Injectable()
@@ -149,6 +150,36 @@ export class ExamsService {
     const exam = await this.findOne(examId);
     exam.results_released = true;
     return await this.examRepository.save(exam);
+  }
+
+  async getDetailedExam(examId: string): Promise<DetailedExamDto> {
+    const exam = await this.examRepository.findOne({
+      where: { exam_id: examId },
+    });
+
+    if (!exam) {
+      throw new NotFoundException(`Exam with ID ${examId} not found`);
+    }
+
+    // Get detailed questions with choices and test cases from QuestionsService
+    const detailedQuestions =
+      await this.questionsService.getDetailedQuestionsForExam(examId);
+
+    // Build and return detailed exam DTO
+    return {
+      exam_id: exam.exam_id,
+      teacher_id: exam.teacher_id,
+      title: exam.title,
+      description: exam.description,
+      type: exam.type,
+      access_code: exam.access_code,
+      start_at: exam.start_at?.toISOString(),
+      end_at: exam.end_at.toISOString(),
+      created_at: exam.created_at.toISOString(),
+      duration_minutes: exam.duration_minutes,
+      results_released: exam.results_released,
+      questions: detailedQuestions,
+    };
   }
 
   async getAllExamsPage(): Promise<AllExamsPageDto> {

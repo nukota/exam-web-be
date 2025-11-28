@@ -29,8 +29,6 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post(':id/promote-admin')
-  @UseGuards(FirebaseAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Promote a user to admin role' })
   @ApiParam({
     name: 'id',

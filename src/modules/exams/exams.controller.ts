@@ -8,7 +8,6 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -16,12 +15,12 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
   ApiParam,
 } from '@nestjs/swagger';
 import { ExamsService } from './exams.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
+import { DetailedExamDto } from './dto/detailed-exam.dto';
 import { Exam } from './entities/exam.entity';
 import { AllExamsPageDto, AllExamsPageItemDto } from './dto/all-exams-page.dto';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
@@ -62,21 +61,28 @@ export class ExamsController {
 
   @Get(':id')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get an exam by ID' })
+  @ApiOperation({
+    summary:
+      'Get detailed exam information with all questions, choices, and test cases',
+  })
   @ApiParam({
     name: 'id',
     description: 'Exam UUID',
     example: '550e8400-e29b-41d4-a716-446655440000',
   })
-  @ApiResponse({ status: 200, description: 'Exam found', type: Exam })
+  @ApiResponse({
+    status: 200,
+    description: 'Detailed exam information retrieved successfully',
+    type: DetailedExamDto,
+  })
   @ApiResponse({ status: 404, description: 'Exam not found' })
-  async findOne(@Param('id') id: string): Promise<Exam> {
-    return this.examsService.findOne(id);
+  async getDetailedExam(@Param('id') id: string): Promise<DetailedExamDto> {
+    return this.examsService.getDetailedExam(id);
   }
 
   @Patch(':id')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update an exam' })
+  @ApiOperation({ summary: 'Update an exam with questions and related data' })
   @ApiParam({
     name: 'id',
     description: 'Exam UUID',
@@ -110,5 +116,3 @@ export class ExamsController {
     return this.examsService.remove(id);
   }
 }
-
-import { NotFoundException } from '@nestjs/common';
