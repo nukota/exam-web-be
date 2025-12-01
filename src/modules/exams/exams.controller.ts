@@ -23,6 +23,7 @@ import { UpdateExamDto } from './dto/update-exam.dto';
 import { DetailedExamDto } from './dto/detailed-exam.dto';
 import { Exam } from './entities/exam.entity';
 import { AllExamsPageDto, AllExamsPageItemDto } from './dto/all-exams-page.dto';
+import { GradingPageDto, GradingPageItemDto } from './dto/grading-page.dto';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { CurrentUser } from '../auth/decorators/user.decorator';
 
@@ -45,6 +46,20 @@ export class ExamsController {
     @CurrentUser('user_id') teacherId: string,
   ): Promise<Exam> {
     return this.examsService.create(createExamDto, teacherId);
+  }
+
+  @Get('grading')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get exams with submission counts for grading',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of exams with submission and grading information',
+    type: [GradingPageItemDto],
+  })
+  async getGradingPage(): Promise<GradingPageDto> {
+    return this.examsService.getGradingPage();
   }
 
   @Get('all')

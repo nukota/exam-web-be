@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Question } from './entities/question.entity';
-import { QuestionInput, QuestionDTO } from './types/question.interface';
 import { ChoicesService } from '../choices/choices.service';
 import { CodingTestCasesService } from '../coding-test-cases/coding-test-cases.service';
+import { QuestionInputDto } from './dto/question-input.dto';
 
 @Injectable()
 export class QuestionsService {
@@ -22,13 +22,15 @@ export class QuestionsService {
     });
   }
 
-  async getDetailedQuestionsForExam(examId: string): Promise<QuestionDTO[]> {
+  async getDetailedQuestionsForExam(
+    examId: string,
+  ): Promise<QuestionInputDto[]> {
     const questions = await this.findByExamId(examId);
 
     // Build detailed questions with choices and test cases
-    const detailedQuestions: QuestionDTO[] = await Promise.all(
+    const detailedQuestions: QuestionInputDto[] = await Promise.all(
       questions.map(async (question) => {
-        const questionDto: QuestionDTO = {
+        const questionDto: QuestionInputDto = {
           question_id: question.question_id,
           question_text: question.question_text,
           title: question.title,
@@ -74,7 +76,7 @@ export class QuestionsService {
 
   async updateQuestionsForExam(
     examId: string,
-    questions: QuestionInput[],
+    questions: QuestionInputDto[],
   ): Promise<Question[]> {
     // Get all existing questions for this exam
     const existingQuestions = await this.findByExamId(examId);

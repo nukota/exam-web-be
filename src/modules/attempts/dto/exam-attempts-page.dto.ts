@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AttemptStatus } from '../../../common/enum';
 
-export class ExamAttemptsPageItemDTO {
+export class ExamAttemptsPageItemDto {
   @ApiProperty({
     description: 'Attempt unique identifier',
     example: '123e4567-e89b-12d3-a456-426614174000',
@@ -58,7 +58,7 @@ export class ExamAttemptsPageItemDTO {
   status: AttemptStatus;
 }
 
-export class ExamAttemptsPageDTO {
+export class ExamAttemptsPageDto {
   @ApiProperty({
     description: 'Exam unique identifier',
     example: '123e4567-e89b-12d3-a456-426614174000',
@@ -104,7 +104,7 @@ export class ExamAttemptsPageDTO {
 
   @ApiProperty({
     description: 'List of all attempts for the exam',
-    type: [ExamAttemptsPageItemDTO],
+    type: [ExamAttemptsPageItemDto],
   })
-  attempts: ExamAttemptsPageItemDTO[];
+  attempts: ExamAttemptsPageItemDto[];
 }

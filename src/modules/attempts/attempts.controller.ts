@@ -3,12 +3,10 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   HttpCode,
   HttpStatus,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -16,13 +14,13 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
   ApiParam,
 } from '@nestjs/swagger';
 import { AttemptsService } from './attempts.service';
 import { Attempt } from './entities/attempt.entity';
-import { ExamAttemptsPageDTO } from './dto/exam-attempts-page.dto';
-import { SubmissionReviewPageDTO } from './dto/submission-review-page.dto';
+import { ExamAttemptsPageDto } from './dto/exam-attempts-page.dto';
+import { SubmissionReviewPageDto } from './dto/submission-review-page.dto';
+import { GradeEssayDto } from './dto/grade-essay.dto';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { CurrentUser } from '../auth/decorators/user.decorator';
 
@@ -111,7 +109,7 @@ export class AttemptsController {
   @ApiResponse({
     status: 200,
     description: 'Exam attempts retrieved successfully',
-    type: ExamAttemptsPageDTO,
+    type: ExamAttemptsPageDto,
   })
   @ApiResponse({
     status: 404,
@@ -119,7 +117,7 @@ export class AttemptsController {
   })
   async getExamAttempts(
     @Param('examId') examId: string,
-  ): Promise<ExamAttemptsPageDTO> {
+  ): Promise<ExamAttemptsPageDto> {
     return this.attemptsService.getExamAttempts(examId);
   }
 
@@ -137,7 +135,7 @@ export class AttemptsController {
   @ApiResponse({
     status: 200,
     description: 'Submission review retrieved successfully',
-    type: SubmissionReviewPageDTO,
+    type: SubmissionReviewPageDto,
   })
   @ApiResponse({
     status: 404,
@@ -145,7 +143,28 @@ export class AttemptsController {
   })
   async getSubmissionReview(
     @Param('attemptId') attemptId: string,
-  ): Promise<SubmissionReviewPageDTO> {
+  ): Promise<SubmissionReviewPageDto> {
     return this.attemptsService.getSubmissionReview(attemptId);
+  }
+
+  @Post('grade/:attemptId')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Grade essay questions in an attempt' })
+  @ApiParam({
+    name: 'attemptId',
+    description: 'Attempt UUID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Essay questions graded successfully',
+    type: Attempt,
+  })
+  @ApiResponse({ status: 404, description: 'Attempt not found' })
+  async gradeEssay(
+    @Param('attemptId') attemptId: string,
+    @Body() gradeEssayDto: GradeEssayDto,
+  ): Promise<Attempt> {
+    return this.attemptsService.gradeEssay(attemptId, gradeEssayDto);
   }
 }

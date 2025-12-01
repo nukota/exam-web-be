@@ -16,6 +16,7 @@ import {
 } from './dto/all-exams-page.dto';
 import { DetailedExamDto } from './dto/detailed-exam.dto';
 import { QuestionsService } from '../questions/questions.service';
+import { GradingPageDto, GradingPageItemDto } from './dto/grading-page.dto';
 
 @Injectable()
 export class ExamsService {
@@ -237,6 +238,63 @@ export class ExamsService {
         question_amount: questionAmount,
         status,
       } as AllExamsPageItemDto;
+    });
+  }
+
+  async getGradingPage(): Promise<GradingPageDto> {
+    const exams = await this.examRepository.find({
+      relations: ['teacher', 'attempts', 'attempts.answers', 'questions'],
+    });
+
+    return exams.map((exam) => {
+      // Count total submissions (submitted or overdue)
+      const totalSubmissions = exam.attempts.filter(
+        (attempt) =>
+          attempt.status === AttemptStatus.SUBMITTED ||
+          attempt.status === AttemptStatus.OVERDUE,
+      ).length;
+
+      // Count pending submissions (need grading for essay questions)
+      // Check if exam has essay questions
+      const hasEssayQuestions = exam.questions.some(
+        (q) => q.question_type === 'essay',
+      );
+
+      let pendingSubmissions = 0;
+      if (hasEssayQuestions) {
+        pendingSubmissions = exam.attempts.filter((attempt) => {
+          if (
+            attempt.status !== AttemptStatus.SUBMITTED &&
+            attempt.status !== AttemptStatus.OVERDUE
+          ) {
+            return false;
+          }
+          // Check if any essay answers are not graded (score is null)
+          const essayQuestionIds = exam.questions
+            .filter((q) => q.question_type === 'essay')
+            .map((q) => q.question_id);
+          const hasUngradedEssay = attempt.answers.some(
+            (answer) =>
+              essayQuestionIds.includes(answer.question_id) &&
+              answer.score === null,
+          );
+          return hasUngradedEssay;
+        }).length;
+      }
+
+      return {
+        exam_id: exam.exam_id,
+        title: exam.title,
+        description: exam.description,
+        end_at: exam.end_at.toISOString(),
+        total_submissions: totalSubmissions,
+        pending_submissions: pendingSubmissions,
+        teacher: {
+          teacher_id: exam.teacher.user_id,
+          full_name: exam.teacher.full_name,
+          email: exam.teacher.email,
+        },
+      } as GradingPageItemDto;
     });
   }
 }

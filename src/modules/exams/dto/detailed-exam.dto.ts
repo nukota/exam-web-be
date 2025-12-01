@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CreateExamDto } from './create-exam.dto';
-import { QuestionDTO } from '../../questions/types/question.interface';
+import { QuestionInputDto } from '../../questions/dto/question-input.dto';
 
 export class DetailedExamDto extends CreateExamDto {
   @ApiProperty({
@@ -34,8 +34,8 @@ export class DetailedExamDto extends CreateExamDto {
   results_released: boolean;
 
   @ApiProperty({
-    type: () => [QuestionDTO],
+    type: () => [QuestionInputDto],
     description: 'List of questions in the exam',
   })
-  questions: QuestionDTO[];
+  questions: QuestionInputDto[];
 }

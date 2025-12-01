@@ -9,8 +9,9 @@ import { Attempt } from './entities/attempt.entity';
 import { AttemptStatus } from '../../common/enum';
 import { CreateAttemptDto } from './dto/create-attempt.dto';
 import { ExamsService } from '../exams/exams.service';
-import { ExamAttemptsPageDTO } from './dto/exam-attempts-page.dto';
-import { SubmissionReviewPageDTO } from './dto/submission-review-page.dto';
+import { ExamAttemptsPageDto } from './dto/exam-attempts-page.dto';
+import { SubmissionReviewPageDto } from './dto/submission-review-page.dto';
+import { GradeEssayDto } from './dto/grade-essay.dto';
 
 @Injectable()
 export class AttemptsService {
@@ -73,7 +74,7 @@ export class AttemptsService {
     await this.attemptRepository.remove(attempt);
   }
 
-  async getExamAttempts(examId: string): Promise<ExamAttemptsPageDTO> {
+  async getExamAttempts(examId: string): Promise<ExamAttemptsPageDto> {
     // Verify exam exists
     const exam = await this.examsService.findOne(examId);
 
@@ -86,7 +87,7 @@ export class AttemptsService {
     // Calculate max score from exam questions
     const detailedExam = await this.examsService.getDetailedExam(examId);
     const maxScore = detailedExam.questions.reduce(
-      (sum, q) => sum + q.points,
+      (sum, q) => sum + (q.points || 0),
       0,
     );
 
@@ -133,7 +134,7 @@ export class AttemptsService {
 
   async getSubmissionReview(
     attemptId: string,
-  ): Promise<SubmissionReviewPageDTO> {
+  ): Promise<SubmissionReviewPageDto> {
     // Get attempt with all related data
     const attempt = await this.attemptRepository.findOne({
       where: { attempt_id: attemptId },
@@ -155,7 +156,7 @@ export class AttemptsService {
       attempt.exam_id,
     );
     const maxScore = detailedExam.questions.reduce(
-      (sum, q) => sum + q.points,
+      (sum, q) => sum + (q.points || 0),
       0,
     );
 
@@ -175,15 +176,17 @@ export class AttemptsService {
         );
 
         // Build choices with correctness indicator
-        const choices = question.choices?.map((choice) => ({
-          choice_id: choice.choice_id,
-          question_id: question.question_id,
-          choice_text: choice.choice_text || '',
-          is_correct:
-            question.correct_answer?.includes(choice.choice_id) ?? false,
-          is_chosen:
-            answer?.selected_choices?.includes(choice.choice_id) ?? false,
-        }));
+        const choices = question.choices?.map((choice) => {
+          const reviewChoice = Object.assign(
+            Object.create(Object.getPrototypeOf(choice)),
+            choice,
+          );
+          (reviewChoice as any).is_correct =
+            question.correct_answer?.includes(choice.choice_id) ?? false;
+          (reviewChoice as any).is_chosen =
+            answer?.selected_choices?.includes(choice.choice_id) ?? false;
+          return reviewChoice;
+        });
 
         // Determine if answered correctly (for auto-gradable questions)
         let answeredCorrectly: boolean | undefined = undefined;
@@ -210,13 +213,13 @@ export class AttemptsService {
         }
 
         return {
-          question_id: question.question_id,
+          question_id: question.question_id || '',
           exam_id: detailedExam.exam_id,
           question_text: question.question_text,
           title: question.title,
-          order: question.order,
+          order: question.order || 0,
           question_type: question.question_type as any,
-          points: question.points,
+          points: question.points || 0,
           correct_answer: question.correct_answer,
           correct_answer_text: question.correct_answer_text,
           coding_template: question.coding_template,
@@ -225,7 +228,7 @@ export class AttemptsService {
           selected_choices: answer?.selected_choices,
           score: answer?.score,
           choices,
-          is_flagged: flaggedQuestionIds.has(question.question_id),
+          is_flagged: flaggedQuestionIds.has(question.question_id || ''),
           answered_correctly: answeredCorrectly,
         };
       }),
@@ -269,5 +272,55 @@ export class AttemptsService {
     if (result.affected === 0) {
       throw new NotFoundException(`Attempt with ID ${id} not found`);
     }
+  }
+
+  async gradeEssay(
+    attemptId: string,
+    gradeEssayDto: GradeEssayDto,
+  ): Promise<Attempt> {
+    const attempt = await this.attemptRepository.findOne({
+      where: { attempt_id: attemptId },
+      relations: ['answers', 'answers.question'],
+    });
+
+    if (!attempt) {
+      throw new NotFoundException(`Attempt with ID ${attemptId} not found`);
+    }
+
+    // Update scores for each question grade
+    for (const grade of gradeEssayDto.question_grades) {
+      const answer = attempt.answers.find(
+        (a) => a.question_id === grade.question_id,
+      );
+
+      if (!answer) {
+        throw new NotFoundException(
+          `Answer for question ${grade.question_id} not found in this attempt`,
+        );
+      }
+
+      // Validate score doesn't exceed question points
+      if (grade.score > answer.question.points) {
+        throw new BadRequestException(
+          `Score ${grade.score} exceeds maximum points ${answer.question.points} for question ${grade.question_id}`,
+        );
+      }
+
+      // Update answer score
+      answer.score = grade.score;
+      await this.attemptRepository.manager.save(answer);
+    }
+
+    // Recalculate total score
+    const totalScore = attempt.answers.reduce(
+      (sum, answer) => sum + (answer.score || 0),
+      0,
+    );
+    attempt.total_score = totalScore;
+
+    // Update attempt status to graded
+    attempt.status = AttemptStatus.GRADED;
+
+    return await this.attemptRepository.save(attempt);
   }
 }

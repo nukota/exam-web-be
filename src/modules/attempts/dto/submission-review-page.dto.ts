@@ -1,8 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ReviewQuestionDto } from '../../questions/dto/review-question.dto';
-import { ReviewChoiceDto } from '../../choices/dto/review-choice.dto';
 
-export class SubmissionReviewPageDTO {
+export class SubmissionReviewPageDto {
   @ApiProperty({
     description: 'Attempt unique identifier',
     example: '123e4567-e89b-12d3-a456-426614174000',

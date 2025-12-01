@@ -12,6 +12,7 @@ import { CodingTestCasesModule } from './modules/coding-test-cases/coding-test-c
 import { AttemptsModule } from './modules/attempts/attempts.module';
 import { AnswersModule } from './modules/answers/answers.module';
 import { FlagsModule } from './modules/flags/flags.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { FlagsModule } from './modules/flags/flags.module';
     AttemptsModule,
     AnswersModule,
     FlagsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
