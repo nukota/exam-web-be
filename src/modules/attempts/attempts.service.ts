@@ -9,6 +9,8 @@ import { Attempt } from './entities/attempt.entity';
 import { AttemptStatus } from '../../common/enum';
 import { CreateAttemptDto } from './dto/create-attempt.dto';
 import { ExamsService } from '../exams/exams.service';
+import { ExamAttemptsPageDTO } from './dto/exam-attempts-page.dto';
+import { SubmissionReviewPageDTO } from './dto/submission-review-page.dto';
 
 @Injectable()
 export class AttemptsService {
@@ -69,6 +71,183 @@ export class AttemptsService {
     }
 
     await this.attemptRepository.remove(attempt);
+  }
+
+  async getExamAttempts(examId: string): Promise<ExamAttemptsPageDTO> {
+    // Verify exam exists
+    const exam = await this.examsService.findOne(examId);
+
+    // Get all attempts for this exam with user relations
+    const attempts = await this.attemptRepository.find({
+      where: { exam_id: examId },
+      relations: ['user'],
+    });
+
+    // Calculate max score from exam questions
+    const detailedExam = await this.examsService.getDetailedExam(examId);
+    const maxScore = detailedExam.questions.reduce(
+      (sum, q) => sum + q.points,
+      0,
+    );
+
+    // Calculate statistics
+    const totalAttempts = attempts.length;
+    const gradedAttempts = attempts.filter(
+      (a) => a.status === AttemptStatus.GRADED,
+    ).length;
+    const flaggedAttempts = attempts.filter((a) => a.cheated).length;
+
+    // Map attempts to DTO format
+    const attemptsDTO = attempts.map((attempt) => {
+      const percentageScore =
+        attempt.total_score != null && maxScore > 0
+          ? (attempt.total_score / maxScore) * 100
+          : undefined;
+
+      return {
+        attempt_id: attempt.attempt_id,
+        student: {
+          user_id: attempt.user.user_id,
+          full_name: attempt.user.full_name,
+          email: attempt.user.email,
+        },
+        submitted_at: attempt.submitted_at?.toISOString(),
+        percentage_score: percentageScore,
+        total_score: attempt.total_score,
+        cheated: attempt.cheated,
+        status: attempt.status,
+      };
+    });
+
+    return {
+      exam_id: exam.exam_id,
+      title: exam.title,
+      description: exam.description,
+      max_score: maxScore,
+      total_attempts: totalAttempts,
+      graded_attempts: gradedAttempts,
+      flagged_attempts: flaggedAttempts,
+      attempts: attemptsDTO,
+    };
+  }
+
+  async getSubmissionReview(
+    attemptId: string,
+  ): Promise<SubmissionReviewPageDTO> {
+    // Get attempt with all related data
+    const attempt = await this.attemptRepository.findOne({
+      where: { attempt_id: attemptId },
+      relations: [
+        'user',
+        'exam',
+        'answers',
+        'answers.question',
+        'answers.question.choices',
+      ],
+    });
+
+    if (!attempt) {
+      throw new NotFoundException(`Attempt with ID ${attemptId} not found`);
+    }
+
+    // Get detailed exam to calculate max score
+    const detailedExam = await this.examsService.getDetailedExam(
+      attempt.exam_id,
+    );
+    const maxScore = detailedExam.questions.reduce(
+      (sum, q) => sum + q.points,
+      0,
+    );
+
+    // Get flags for this user and exam
+    const flags = await this.attemptRepository.query(
+      `SELECT question_id FROM flags WHERE user_id = $1`,
+      [attempt.user_id],
+    );
+    const flaggedQuestionIds = new Set(flags.map((f: any) => f.question_id));
+
+    // Build questions array with answers
+    const questions = await Promise.all(
+      detailedExam.questions.map(async (question) => {
+        // Find the answer for this question
+        const answer = attempt.answers.find(
+          (a) => a.question_id === question.question_id,
+        );
+
+        // Build choices with correctness indicator
+        const choices = question.choices?.map((choice) => ({
+          choice_id: choice.choice_id,
+          question_id: question.question_id,
+          choice_text: choice.choice_text || '',
+          is_correct:
+            question.correct_answer?.includes(choice.choice_id) ?? false,
+          is_chosen:
+            answer?.selected_choices?.includes(choice.choice_id) ?? false,
+        }));
+
+        // Determine if answered correctly (for auto-gradable questions)
+        let answeredCorrectly: boolean | undefined = undefined;
+        if (
+          answer &&
+          (question.question_type === 'single_choice' ||
+            question.question_type === 'multiple_choice')
+        ) {
+          const selectedSet = new Set(answer.selected_choices || []);
+          const correctSet = new Set(question.correct_answer || []);
+          answeredCorrectly =
+            selectedSet.size === correctSet.size &&
+            [...selectedSet].every((id) => correctSet.has(id));
+        } else if (
+          answer &&
+          question.question_type === 'short_answer' &&
+          question.correct_answer_text
+        ) {
+          answeredCorrectly = question.correct_answer_text.some(
+            (correct) =>
+              correct.toLowerCase().trim() ===
+              answer.answer_text?.toLowerCase().trim(),
+          );
+        }
+
+        return {
+          question_id: question.question_id,
+          exam_id: detailedExam.exam_id,
+          question_text: question.question_text,
+          title: question.title,
+          order: question.order,
+          question_type: question.question_type as any,
+          points: question.points,
+          correct_answer: question.correct_answer,
+          correct_answer_text: question.correct_answer_text,
+          coding_template: question.coding_template,
+          programming_languages: question.programming_languages as any,
+          answer_text: answer?.answer_text,
+          selected_choices: answer?.selected_choices,
+          score: answer?.score,
+          choices,
+          is_flagged: flaggedQuestionIds.has(question.question_id),
+          answered_correctly: answeredCorrectly,
+        };
+      }),
+    );
+
+    return {
+      attempt_id: attempt.attempt_id,
+      student: {
+        user_id: attempt.user.user_id,
+        full_name: attempt.user.full_name,
+        email: attempt.user.email,
+      },
+      exam: {
+        exam_id: attempt.exam.exam_id,
+        title: attempt.exam.title,
+        max_score: maxScore,
+      },
+      total_score: attempt.total_score,
+      cheated: attempt.cheated,
+      submitted_at: attempt.submitted_at?.toISOString(),
+      questions,
+    };
   }
 
   async findAll(): Promise<Attempt[]> {

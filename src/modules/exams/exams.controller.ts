@@ -47,16 +47,22 @@ export class ExamsController {
     return this.examsService.create(createExamDto, teacherId);
   }
 
-  @Get('all-exams')
+  @Get('all')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all exams with question count and status' })
+  @ApiOperation({
+    summary:
+      'Get all exams with question count and status (admin: all exams, student: only exams with attempts)',
+  })
   @ApiResponse({
     status: 200,
     description: 'List of all exams with metadata',
     type: [AllExamsPageItemDto],
   })
-  async getAllExamsPage(): Promise<AllExamsPageDto> {
-    return this.examsService.getAllExamsPage();
+  async getAllExamsPage(
+    @CurrentUser('user_id') userId: string,
+    @CurrentUser('role') userRole: string,
+  ): Promise<AllExamsPageDto> {
+    return this.examsService.getAllExamsPage(userId, userRole);
   }
 
   @Get(':id')

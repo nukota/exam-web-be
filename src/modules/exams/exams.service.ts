@@ -182,10 +182,22 @@ export class ExamsService {
     };
   }
 
-  async getAllExamsPage(): Promise<AllExamsPageDto> {
-    const exams = await this.examRepository.find({
+  async getAllExamsPage(
+    userId: string,
+    userRole: string,
+  ): Promise<AllExamsPageDto> {
+    let exams = await this.examRepository.find({
       relations: ['questions', 'attempts'],
     });
+
+    // Filter exams based on user role
+    if (userRole === 'student') {
+      // Only return exams where the student has an attempt
+      exams = exams.filter((exam) =>
+        exam.attempts.some((attempt) => attempt.user_id === userId),
+      );
+    }
+    // For admin role, return all exams (no filtering needed)
 
     const now = new Date();
 

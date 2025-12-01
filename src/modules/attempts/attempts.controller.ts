@@ -21,6 +21,8 @@ import {
 } from '@nestjs/swagger';
 import { AttemptsService } from './attempts.service';
 import { Attempt } from './entities/attempt.entity';
+import { ExamAttemptsPageDTO } from './dto/exam-attempts-page.dto';
+import { SubmissionReviewPageDTO } from './dto/submission-review-page.dto';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { CurrentUser } from '../auth/decorators/user.decorator';
 
@@ -94,5 +96,56 @@ export class AttemptsController {
     @CurrentUser('user_id') userId: string,
   ): Promise<void> {
     return this.attemptsService.leaveExam(examId, userId);
+  }
+
+  @Get('exam/:examId')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get all attempts for a specific exam with student information',
+  })
+  @ApiParam({
+    name: 'examId',
+    description: 'Exam UUID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Exam attempts retrieved successfully',
+    type: ExamAttemptsPageDTO,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Exam not found',
+  })
+  async getExamAttempts(
+    @Param('examId') examId: string,
+  ): Promise<ExamAttemptsPageDTO> {
+    return this.attemptsService.getExamAttempts(examId);
+  }
+
+  @Get('review/:attemptId')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Get detailed submission review with questions, answers, and correctness',
+  })
+  @ApiParam({
+    name: 'attemptId',
+    description: 'Attempt UUID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Submission review retrieved successfully',
+    type: SubmissionReviewPageDTO,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Attempt not found',
+  })
+  async getSubmissionReview(
+    @Param('attemptId') attemptId: string,
+  ): Promise<SubmissionReviewPageDTO> {
+    return this.attemptsService.getSubmissionReview(attemptId);
   }
 }

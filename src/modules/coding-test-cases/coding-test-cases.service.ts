@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CodingTestCaseInput } from './types/coding-test-case-input.interface';
+import { CodingTestCaseInputDto } from './dto/coding-test-case-input.dto';
 import { CodingTestCase } from './entities/coding-test-case.entity';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class CodingTestCasesService {
   ) {}
 
   async create(
-    createDto: Omit<CodingTestCaseInput, 'test_case_id'> & {
+    createDto: Omit<CodingTestCaseInputDto, 'test_case_id'> & {
       question_id: string;
     },
   ): Promise<CodingTestCase> {
@@ -39,7 +39,7 @@ export class CodingTestCasesService {
   async update(
     id: string,
     updateData: Partial<
-      Omit<CodingTestCaseInput, 'test_case_id'> & { question_id: string }
+      Omit<CodingTestCaseInputDto, 'test_case_id'> & { question_id: string }
     >,
   ): Promise<CodingTestCase> {
     const testCase = await this.findOne(id);
@@ -62,7 +62,7 @@ export class CodingTestCasesService {
    */
   async updateTestCasesForQuestion(
     questionId: string,
-    testCasesInput: CodingTestCaseInput[],
+    testCasesInput: CodingTestCaseInputDto[],
   ): Promise<Map<string, string>> {
     const tempIdMap = new Map<string, string>();
 

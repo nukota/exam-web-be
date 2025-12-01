@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ChoiceInput } from './types/choice-input.interface';
+import { ChoiceInputDto } from './dto/choice-input.dto';
 import { Choice } from './entities/choice.entity';
 
 @Injectable()
@@ -12,7 +12,9 @@ export class ChoicesService {
   ) {}
 
   async create(
-    createChoiceDto: Omit<ChoiceInput, 'choice_id'> & { question_id: string },
+    createChoiceDto: Omit<ChoiceInputDto, 'choice_id'> & {
+      question_id: string;
+    },
   ): Promise<Choice> {
     const choice = this.choiceRepository.create(createChoiceDto);
     return await this.choiceRepository.save(choice);
@@ -37,7 +39,7 @@ export class ChoicesService {
   async update(
     id: string,
     updateData: Partial<
-      Omit<ChoiceInput, 'choice_id'> & { question_id: string }
+      Omit<ChoiceInputDto, 'choice_id'> & { question_id: string }
     >,
   ): Promise<Choice> {
     const choice = await this.findOne(id);
@@ -60,7 +62,7 @@ export class ChoicesService {
    */
   async updateChoicesForQuestion(
     questionId: string,
-    choicesInput: ChoiceInput[],
+    choicesInput: ChoiceInputDto[],
   ): Promise<Map<string, string>> {
     const tempIdMap = new Map<string, string>();
 

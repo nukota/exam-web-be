@@ -1,6 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { ChoiceInput } from '../../choices/types/choice-input.interface';
-import { CodingTestCaseInput } from '../../coding-test-cases/types/coding-test-case-input.interface';
+import { ChoiceInputDto } from '../../choices/dto/choice-input.dto';
+import { CodingTestCaseInputDto } from '../../coding-test-cases/dto/coding-test-case-input.dto';
 
 export interface QuestionInput {
   question_id?: string | null;
@@ -13,8 +12,8 @@ export interface QuestionInput {
   correct_answer_text?: string[];
   coding_template?: Record<string, string>;
   programming_languages?: string[];
-  choices?: ChoiceInput[];
-  codingTestCases?: CodingTestCaseInput[];
+  choices?: ChoiceInputDto[];
+  codingTestCases?: CodingTestCaseInputDto[];
 }
 
 export class QuestionDTO {
@@ -28,6 +27,6 @@ export class QuestionDTO {
   correct_answer_text?: string[];
   coding_template?: Record<string, string>;
   programming_languages?: string[];
-  choices?: ChoiceInput[];
-  codingTestCases?: CodingTestCaseInput[];
+  choices?: ChoiceInputDto[];
+  codingTestCases?: CodingTestCaseInputDto[];
 }
