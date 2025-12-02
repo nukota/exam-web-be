@@ -13,7 +13,6 @@ import { AttemptStatus } from '../../../common/enum';
 import { Exam } from '../../exams/entities/exam.entity';
 import { User } from '../../users/entities/user.entity';
 import { Answer } from '../../answers/entities/answer.entity';
-import { Flag } from '../../flags/entities/flag.entity';
 
 @Entity('attempts')
 export class Attempt {

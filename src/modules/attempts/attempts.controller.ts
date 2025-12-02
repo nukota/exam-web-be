@@ -21,6 +21,7 @@ import { Attempt } from './entities/attempt.entity';
 import { ExamAttemptsPageDto } from './dto/exam-attempts-page.dto';
 import { SubmissionReviewPageDto } from './dto/submission-review-page.dto';
 import { GradeEssayDto } from './dto/grade-essay.dto';
+import { SubmitExamDto } from './dto/submit-exam.dto';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { CurrentUser } from '../auth/decorators/user.decorator';
 
@@ -145,6 +146,35 @@ export class AttemptsController {
     @Param('attemptId') attemptId: string,
   ): Promise<SubmissionReviewPageDto> {
     return this.attemptsService.getSubmissionReview(attemptId);
+  }
+
+  @Post('submit/:examId')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Submit exam answers with automatic grading for non-essay questions',
+  })
+  @ApiParam({
+    name: 'examId',
+    description: 'Exam UUID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Exam submitted and auto-graded successfully',
+    type: Attempt,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Already submitted or invalid data',
+  })
+  @ApiResponse({ status: 404, description: 'Attempt not found' })
+  async submitExam(
+    @Param('examId') examId: string,
+    @CurrentUser('user_id') userId: string,
+    @Body() submitExamDto: SubmitExamDto,
+  ): Promise<Attempt> {
+    return this.attemptsService.submitExam(examId, userId, submitExamDto);
   }
 
   @Post('grade/:attemptId')
