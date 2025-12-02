@@ -59,7 +59,7 @@ export class QuestionsService {
           question.question_id,
         );
         if (testCases.length > 0) {
-          questionDto.codingTestCases = testCases.map((tc) => ({
+          questionDto.coding_test_cases = testCases.map((tc) => ({
             test_case_id: tc.test_case_id,
             input_data: tc.input_data || '',
             expected_output: tc.expected_output || '',
@@ -106,7 +106,7 @@ export class QuestionsService {
       const orderValue = questionData.order ?? i;
 
       // Extract choices and coding test cases from question data
-      const { choices, codingTestCases, ...questionFields } = questionData;
+      const { choices, coding_test_cases, ...questionFields } = questionData;
 
       let savedQuestion: Question;
 
@@ -134,7 +134,7 @@ export class QuestionsService {
           await this.processChoicesAndTestCases(
             savedQuestion.question_id,
             choices,
-            codingTestCases,
+            coding_test_cases,
             correct_answer,
           );
 
@@ -162,7 +162,7 @@ export class QuestionsService {
         await this.processChoicesAndTestCases(
           savedQuestion.question_id,
           choices,
-          codingTestCases,
+          coding_test_cases,
           correct_answer,
         );
 

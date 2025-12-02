@@ -16,20 +16,26 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
-import { AttemptsService } from './attempts.service';
 import { Attempt } from './entities/attempt.entity';
 import { ExamAttemptsPageDto } from './dto/exam-attempts-page.dto';
 import { SubmissionReviewPageDto } from './dto/submission-review-page.dto';
 import { GradeEssayDto } from './dto/grade-essay.dto';
 import { SubmitExamDto } from './dto/submit-exam.dto';
+import { ExamResultPageDto } from './dto/exam-result-page.dto';
+import { MyResultsPageDto } from './dto/my-results-page.dto';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { CurrentUser } from '../auth/decorators/user.decorator';
+import { StudentAttemptsService } from './services/student-attempts.service';
+import { AdminAttemptsService } from './services/admin-attempts.service';
 
 @ApiTags('attempts')
 @Controller('attempts')
 @UseGuards(FirebaseAuthGuard)
 export class AttemptsController {
-  constructor(private readonly attemptsService: AttemptsService) {}
+  constructor(
+    private readonly studentAttemptsService: StudentAttemptsService,
+    private readonly adminAttemptsService: AdminAttemptsService,
+  ) {}
 
   @Post('join/:accessCode')
   @ApiBearerAuth()
@@ -62,7 +68,7 @@ export class AttemptsController {
     @Param('accessCode') accessCode: string,
     @CurrentUser('user_id') userId: string,
   ): Promise<Attempt> {
-    return this.attemptsService.joinExam(accessCode, userId);
+    return this.studentAttemptsService.joinExam(accessCode, userId);
   }
 
   @Delete('leave/:examId')
@@ -94,7 +100,7 @@ export class AttemptsController {
     @Param('examId') examId: string,
     @CurrentUser('user_id') userId: string,
   ): Promise<void> {
-    return this.attemptsService.leaveExam(examId, userId);
+    return this.studentAttemptsService.leaveExam(examId, userId);
   }
 
   @Get('exam/:examId')
@@ -119,7 +125,7 @@ export class AttemptsController {
   async getExamAttempts(
     @Param('examId') examId: string,
   ): Promise<ExamAttemptsPageDto> {
-    return this.attemptsService.getExamAttempts(examId);
+    return this.adminAttemptsService.getExamAttempts(examId);
   }
 
   @Get('review/:attemptId')
@@ -145,7 +151,7 @@ export class AttemptsController {
   async getSubmissionReview(
     @Param('attemptId') attemptId: string,
   ): Promise<SubmissionReviewPageDto> {
-    return this.attemptsService.getSubmissionReview(attemptId);
+    return this.adminAttemptsService.getSubmissionReview(attemptId);
   }
 
   @Post('submit/:examId')
@@ -174,7 +180,11 @@ export class AttemptsController {
     @CurrentUser('user_id') userId: string,
     @Body() submitExamDto: SubmitExamDto,
   ): Promise<Attempt> {
-    return this.attemptsService.submitExam(examId, userId, submitExamDto);
+    return this.studentAttemptsService.submitExam(
+      examId,
+      userId,
+      submitExamDto,
+    );
   }
 
   @Post('grade/:attemptId')
@@ -195,6 +205,56 @@ export class AttemptsController {
     @Param('attemptId') attemptId: string,
     @Body() gradeEssayDto: GradeEssayDto,
   ): Promise<Attempt> {
-    return this.attemptsService.gradeEssay(attemptId, gradeEssayDto);
+    return this.adminAttemptsService.gradeEssay(attemptId, gradeEssayDto);
+  }
+
+  @Get('leaderboard/:examId')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get exam results with leaderboard for the current student',
+  })
+  @ApiParam({
+    name: 'examId',
+    description: 'Exam UUID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Exam results and leaderboard retrieved successfully',
+    type: ExamResultPageDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Exam not found or student has not joined this exam',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing Firebase token',
+  })
+  async getExamLeaderboard(
+    @Param('examId') examId: string,
+    @CurrentUser('user_id') userId: string,
+  ): Promise<ExamResultPageDto> {
+    return this.studentAttemptsService.getExamLeaderboard(examId, userId);
+  }
+
+  @Get('result')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get all attempt results for the current student',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Student attempt results retrieved successfully',
+    type: MyResultsPageDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing Firebase token',
+  })
+  async getMyResults(
+    @CurrentUser('user_id') userId: string,
+  ): Promise<MyResultsPageDto> {
+    return this.studentAttemptsService.getMyResults(userId);
   }
 }

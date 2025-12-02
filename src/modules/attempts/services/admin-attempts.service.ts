@@ -5,78 +5,25 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Attempt } from './entities/attempt.entity';
-import { Answer } from '../answers/entities/answer.entity';
-import { AttemptStatus } from '../../common/enum';
-import { CreateAttemptDto } from './dto/create-attempt.dto';
-import { ExamsService } from '../exams/exams.service';
-import { ExamAttemptsPageDto } from './dto/exam-attempts-page.dto';
-import { SubmissionReviewPageDto } from './dto/submission-review-page.dto';
-import { GradeEssayDto } from './dto/grade-essay.dto';
-import { SubmitExamDto } from './dto/submit-exam.dto';
-import { autoGradeAnswer } from '../../common/utils/helpers';
+import { Attempt } from '../entities/attempt.entity';
+import { AttemptStatus } from '../../../common/enum';
+import { CreateAttemptDto } from '../dto/create-attempt.dto';
+import { ExamsService } from '../../exams/exams.service';
+import { ExamAttemptsPageDto } from '../dto/exam-attempts-page.dto';
+import { SubmissionReviewPageDto } from '../dto/submission-review-page.dto';
+import { GradeEssayDto } from '../dto/grade-essay.dto';
 
 @Injectable()
-export class AttemptsService {
+export class AdminAttemptsService {
   constructor(
     @InjectRepository(Attempt)
     private readonly attemptRepository: Repository<Attempt>,
-    @InjectRepository(Answer)
-    private readonly answerRepository: Repository<Answer>,
     private readonly examsService: ExamsService,
   ) {}
 
   async create(createDto: CreateAttemptDto): Promise<Attempt> {
     const attempt = this.attemptRepository.create(createDto);
     return await this.attemptRepository.save(attempt);
-  }
-
-  async joinExam(accessCode: string, userId: string): Promise<Attempt> {
-    // Find exam by access code
-    const exam = await this.examsService.findByAccessCode(accessCode);
-    if (!exam) {
-      throw new NotFoundException(
-        `Exam with access code ${accessCode} not found`,
-      );
-    }
-
-    // Check if student already has an attempt for this exam
-    const existingAttempt = await this.attemptRepository.findOne({
-      where: { exam_id: exam.exam_id, user_id: userId },
-    });
-
-    if (existingAttempt) {
-      throw new BadRequestException('You have already joined this exam');
-    }
-
-    // Create new attempt
-    const attempt = this.attemptRepository.create({
-      exam_id: exam.exam_id,
-      user_id: userId,
-      status: AttemptStatus.NOT_STARTED,
-    });
-
-    return await this.attemptRepository.save(attempt);
-  }
-
-  async leaveExam(examId: string, userId: string): Promise<void> {
-    const attempt = await this.attemptRepository.findOne({
-      where: { exam_id: examId, user_id: userId },
-    });
-
-    if (!attempt) {
-      throw new NotFoundException('You have not joined this exam');
-    }
-
-    // Only allow leaving if the attempt hasn't been submitted
-    if (
-      attempt.status === AttemptStatus.SUBMITTED ||
-      attempt.status === AttemptStatus.GRADED
-    ) {
-      throw new BadRequestException('Cannot leave exam after submission');
-    }
-
-    await this.attemptRepository.remove(attempt);
   }
 
   async getExamAttempts(examId: string): Promise<ExamAttemptsPageDto> {
@@ -325,121 +272,6 @@ export class AttemptsService {
 
     // Update attempt status to graded
     attempt.status = AttemptStatus.GRADED;
-
-    return await this.attemptRepository.save(attempt);
-  }
-
-  async submitExam(
-    examId: string,
-    userId: string,
-    submitExamDto: SubmitExamDto,
-  ): Promise<Attempt> {
-    // Get attempt with exam and questions
-    const attempt = await this.attemptRepository.findOne({
-      where: { exam_id: examId, user_id: userId },
-      relations: ['exam'],
-    });
-
-    if (!attempt) {
-      throw new NotFoundException(`Attempt for exam ${examId} not found`);
-    }
-
-    // Check if already submitted
-    if (
-      attempt.status === AttemptStatus.SUBMITTED ||
-      attempt.status === AttemptStatus.GRADED
-    ) {
-      throw new BadRequestException('Exam has already been submitted');
-    }
-
-    // Check if exam time has ended
-    const now = new Date();
-    const isOverdue = attempt.exam.end_at < now;
-
-    // Check if submission is within time limit (start time + duration)
-    let isWithinTimeLimit = true;
-    if (attempt.started_at && attempt.exam.duration_minutes) {
-      const allowedEndTime = new Date(attempt.started_at);
-      allowedEndTime.setMinutes(
-        allowedEndTime.getMinutes() + attempt.exam.duration_minutes,
-      );
-      isWithinTimeLimit = now <= allowedEndTime;
-    }
-
-    // Get detailed exam with questions
-    const detailedExam = await this.examsService.getDetailedExam(
-      attempt.exam_id,
-    );
-
-    // Create or update answers and auto-grade
-    let totalScore = 0;
-    let hasEssayQuestions = false;
-
-    for (const answerSubmission of submitExamDto.answers) {
-      const question = detailedExam.questions.find(
-        (q) => q.question_id === answerSubmission.question_id,
-      );
-
-      if (!question) {
-        throw new NotFoundException(
-          `Question ${answerSubmission.question_id} not found in this exam`,
-        );
-      }
-
-      // Check if answer already exists
-      let answer = await this.answerRepository.findOne({
-        where: {
-          attempt_id: attempt.attempt_id,
-          question_id: answerSubmission.question_id,
-        },
-      });
-
-      if (!answer) {
-        answer = this.answerRepository.create({
-          attempt_id: attempt.attempt_id,
-          question_id: answerSubmission.question_id,
-        });
-      }
-
-      // Set answer data
-      answer.answer_text = answerSubmission.answer_text;
-      answer.selected_choices = answerSubmission.selected_choices;
-
-      // Auto-grade based on question type
-      const score = autoGradeAnswer(
-        question,
-        answerSubmission,
-        question.points || 0,
-      );
-
-      if (score !== null) {
-        answer.score = score;
-        totalScore += score;
-      } else {
-        // Essay question needs manual grading
-        hasEssayQuestions = true;
-        answer.score = undefined;
-      }
-
-      await this.answerRepository.save(answer);
-    }
-
-    // Update attempt
-    attempt.submitted_at = now;
-    if (submitExamDto.started_at) {
-      attempt.started_at = new Date(submitExamDto.started_at);
-    }
-    attempt.cheated = submitExamDto.cheated;
-    attempt.total_score = totalScore;
-
-    // Set status based on conditions
-    if (isOverdue || !isWithinTimeLimit) {
-      attempt.status = AttemptStatus.OVERDUE;
-    } else if (hasEssayQuestions) {
-      attempt.status = AttemptStatus.SUBMITTED;
-    } else {
-      attempt.status = AttemptStatus.GRADED;
-    }
 
     return await this.attemptRepository.save(attempt);
   }

@@ -123,5 +123,5 @@ export class QuestionInputDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CodingTestCaseInputDto)
-  codingTestCases?: CodingTestCaseInputDto[];
+  coding_test_cases?: CodingTestCaseInputDto[];
 }
