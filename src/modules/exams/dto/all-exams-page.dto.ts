@@ -6,7 +6,8 @@ export type ExamStatus =
   | 'started'
   | 'ended'
   | 'graded'
-  | 'released';
+  | 'released'
+  | 'submitted';
 
 export class AllExamsPageItemDto {
   @ApiProperty({ description: 'Exam unique identifier' })
@@ -50,7 +51,14 @@ export class AllExamsPageItemDto {
 
   @ApiProperty({
     description: 'Current status of the exam',
-    enum: ['not started', 'started', 'ended', 'graded', 'released'],
+    enum: [
+      'not started',
+      'started',
+      'ended',
+      'graded',
+      'released',
+      'submitted',
+    ],
   })
   status: ExamStatus;
 }

@@ -206,21 +206,42 @@ export class ExamsService {
       const questionAmount = exam.questions.length;
       let status: ExamStatus;
 
-      // Determine exam status
-      if (exam.results_released) {
-        status = 'released';
-      } else if (exam.end_at < now) {
-        // Exam has ended, check if all attempts are graded
-        const submittedOrOverdueAttempts = exam.attempts.filter(
-          (attempt) =>
-            attempt.status === AttemptStatus.SUBMITTED ||
-            attempt.status === AttemptStatus.OVERDUE,
+      // For students, check if they have submitted the exam
+      if (userRole === 'student') {
+        const studentAttempt = exam.attempts.find(
+          (attempt) => attempt.user_id === userId,
         );
-        status = submittedOrOverdueAttempts.length === 0 ? 'graded' : 'ended';
-      } else if (exam.start_at && exam.start_at <= now) {
-        status = 'started';
+        if (studentAttempt && studentAttempt.submitted_at) {
+          status = 'submitted';
+        } else {
+          // Use default logic for students who haven't submitted
+          if (exam.results_released) {
+            status = 'released';
+          } else if (exam.end_at < now) {
+            status = 'ended';
+          } else if (exam.start_at && exam.start_at <= now) {
+            status = 'started';
+          } else {
+            status = 'not started';
+          }
+        }
       } else {
-        status = 'not started';
+        // Admin/teacher view - use existing logic
+        if (exam.results_released) {
+          status = 'released';
+        } else if (exam.end_at < now) {
+          // Exam has ended, check if all attempts are graded
+          const submittedOrOverdueAttempts = exam.attempts.filter(
+            (attempt) =>
+              attempt.status === AttemptStatus.SUBMITTED ||
+              attempt.status === AttemptStatus.OVERDUE,
+          );
+          status = submittedOrOverdueAttempts.length === 0 ? 'graded' : 'ended';
+        } else if (exam.start_at && exam.start_at <= now) {
+          status = 'started';
+        } else {
+          status = 'not started';
+        }
       }
 
       return {
