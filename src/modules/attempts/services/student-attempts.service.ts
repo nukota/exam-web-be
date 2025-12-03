@@ -13,6 +13,7 @@ import { SubmitExamDto } from '../dto/submit-exam.dto';
 import { ExamResultPageDto } from '../dto/exam-result-page.dto';
 import { MyResultsPageDto } from '../dto/my-results-page.dto';
 import { autoGradeAnswer } from '../../../common/utils/helpers';
+import { Judge0Service } from '../../../common/services/judge0.service';
 
 @Injectable()
 export class StudentAttemptsService {
@@ -22,6 +23,7 @@ export class StudentAttemptsService {
     @InjectRepository(Answer)
     private readonly answerRepository: Repository<Answer>,
     private readonly examsService: ExamsService,
+    private readonly judge0Service: Judge0Service,
   ) {}
 
   async joinExam(accessCode: string, userId: string): Promise<Attempt> {
@@ -78,6 +80,7 @@ export class StudentAttemptsService {
     submitExamDto: SubmitExamDto,
   ): Promise<Attempt> {
     // Get attempt with exam and questions
+    console.log('Submitting exam for user:', userId, 'exam:', examId);
     const attempt = await this.attemptRepository.findOne({
       where: { exam_id: examId, user_id: userId },
       relations: ['exam'],
@@ -149,17 +152,18 @@ export class StudentAttemptsService {
       answer.selected_choices = answerSubmission.selected_choices;
 
       // Auto-grade based on question type
-      const score = autoGradeAnswer(
+      const score = await autoGradeAnswer(
         question,
         answerSubmission,
         question.points || 0,
+        this.judge0Service,
       );
 
       if (score !== null) {
         answer.score = score;
         totalScore += score;
       } else {
-        // Essay question needs manual grading
+        // Essay or coding question needs manual grading
         hasEssayQuestions = true;
         answer.score = undefined;
       }

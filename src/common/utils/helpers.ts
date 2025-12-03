@@ -51,13 +51,15 @@ export function sanitizeString(value: string): string {
  * @param question - Question object with type and correct answers
  * @param answerSubmission - User's answer submission
  * @param maxPoints - Maximum points for the question
+ * @param judge0Service - Judge0 service for grading coding questions (optional)
  * @returns Score (number) or null if manual grading required
  */
-export function autoGradeAnswer(
+export async function autoGradeAnswer(
   question: any,
   answerSubmission: any,
   maxPoints: number,
-): number | null {
+  judge0Service?: any,
+): Promise<number | null> {
   const questionType = question.question_type;
 
   // Essay questions require manual grading
@@ -129,9 +131,67 @@ export function autoGradeAnswer(
     return 0;
   }
 
-  // Coding questions require manual grading or external judge system
+  // Coding questions - auto-grade using Judge0 if available
   if (questionType === 'coding') {
-    return null;
+    if (!judge0Service || !answerSubmission.answer_text) {
+      return null; // Requires manual grading if Judge0 not available or no code submitted
+    }
+
+    try {
+      // Get code and language from answer submission
+      // Frontend sends: { answer_text: "code", programming_language: "cpp" }
+      const code = answerSubmission.answer_text;
+      const language =
+        answerSubmission.programming_language ||
+        question.programming_languages?.[0]?.toLowerCase() ||
+        'javascript';
+
+      if (!code) {
+        return 0;
+      }
+
+      // Get test cases from question (check both camelCase and snake_case)
+      const testCases = question.coding_test_cases || [];
+      console.log('Processing coding question:', question.question_id);
+      console.log('Test cases found:', testCases.length);
+      console.log('Language:', language);
+
+      if (testCases.length === 0) {
+        console.log('No test cases - requires manual grading');
+        return null; // No test cases, requires manual grading
+      }
+
+      // Format test cases for Judge0
+      const formattedTestCases = testCases.map((tc: any) => ({
+        input: tc.input_data || '',
+        expected_output: tc.expected_output || '',
+      }));
+
+      // Execute code with test cases
+      const results = await judge0Service.executeCodeWithTestCases(
+        code,
+        language,
+        formattedTestCases,
+      );
+
+      // Calculate score based on passed test cases
+      const passedCount = results.filter((r: any) => r.passed).length;
+      const totalCount = results.length;
+
+      console.log(`Test results: ${passedCount}/${totalCount} passed`);
+
+      if (totalCount === 0) {
+        return null;
+      }
+
+      // Proportional scoring
+      const score = (passedCount / totalCount) * maxPoints;
+      console.log(`Calculated score: ${score} out of ${maxPoints}`);
+      return Math.round(score * 100) / 100; // Round to 2 decimal places
+    } catch (error) {
+      console.error('Error grading coding question:', error);
+      return null; // Fall back to manual grading on error
+    }
   }
 
   return 0;

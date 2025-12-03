@@ -13,6 +13,7 @@ import { AttemptsModule } from './modules/attempts/attempts.module';
 import { AnswersModule } from './modules/answers/answers.module';
 import { FlagsModule } from './modules/flags/flags.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -38,6 +39,9 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
       }),
       inject: [ConfigService],
     }),
+
+    // Common module (global utilities)
+    CommonModule,
 
     // Auth module
     AuthModule,
