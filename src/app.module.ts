@@ -14,6 +14,7 @@ import { AnswersModule } from './modules/answers/answers.module';
 import { FlagsModule } from './modules/flags/flags.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { CommonModule } from './common/common.module';
+import { SeedsModule } from './modules/seeds/seeds.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { CommonModule } from './common/common.module';
     AnswersModule,
     FlagsModule,
     DashboardModule,
+    SeedsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
