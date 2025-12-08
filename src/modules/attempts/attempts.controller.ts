@@ -23,6 +23,7 @@ import { GradeEssayDto } from './dto/grade-essay.dto';
 import { SubmitExamDto } from './dto/submit-exam.dto';
 import { ExamResultPageDto } from './dto/exam-result-page.dto';
 import { MyResultsPageDto } from './dto/my-results-page.dto';
+import { ExamLeaderboardPageDto } from './dto/exam-leaderboard-page.dto';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { CurrentUser } from '../auth/decorators/user.decorator';
 import { StudentAttemptsService } from './services/student-attempts.service';
@@ -236,6 +237,28 @@ export class AttemptsController {
     @CurrentUser('user_id') userId: string,
   ): Promise<ExamResultPageDto> {
     return this.studentAttemptsService.getExamLeaderboard(examId, userId);
+  }
+
+  @Get('leaderboard/admin/:examId')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get exam leaderboard for admin (all students)',
+  })
+  @ApiParam({
+    name: 'examId',
+    description: 'Exam UUID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Exam leaderboard retrieved successfully',
+    type: ExamLeaderboardPageDto,
+  })
+  @ApiResponse({ status: 404, description: 'Exam not found' })
+  async getAdminExamLeaderboard(
+    @Param('examId') examId: string,
+  ): Promise<ExamLeaderboardPageDto> {
+    return this.adminAttemptsService.getExamLeaderboard(examId);
   }
 
   @Get('result')

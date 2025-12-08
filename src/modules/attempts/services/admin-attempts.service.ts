@@ -12,6 +12,7 @@ import { ExamsService } from '../../exams/exams.service';
 import { ExamAttemptsPageDto } from '../dto/exam-attempts-page.dto';
 import { SubmissionReviewPageDto } from '../dto/submission-review-page.dto';
 import { GradeEssayDto } from '../dto/grade-essay.dto';
+import { ExamLeaderboardPageDto } from '../dto/exam-leaderboard-page.dto';
 
 @Injectable()
 export class AdminAttemptsService {
@@ -202,6 +203,79 @@ export class AdminAttemptsService {
       cheated: attempt.cheated,
       submitted_at: attempt.submitted_at?.toISOString(),
       questions,
+    };
+  }
+
+  async getExamLeaderboard(examId: string): Promise<ExamLeaderboardPageDto> {
+    // Verify exam exists
+    const exam = await this.examsService.findOne(examId);
+
+    // Get detailed exam to calculate max score
+    const detailedExam = await this.examsService.getDetailedExam(examId);
+    const maxScore = detailedExam.questions.reduce(
+      (sum, q) => sum + (q.points || 0),
+      0,
+    );
+
+    // Get all submitted attempts for this exam with user relations
+    const submittedAttempts = await this.attemptRepository.find({
+      where: { exam_id: examId },
+      relations: ['user'],
+    });
+
+    // Check and update overdue attempts
+    const now = new Date();
+    for (const attempt of submittedAttempts) {
+      if (attempt.status === AttemptStatus.NOT_STARTED && exam.end_at < now) {
+        attempt.status = AttemptStatus.OVERDUE;
+        await this.attemptRepository.save(attempt);
+      }
+    }
+
+    // Include all attempts for this exam (no status filtering)
+    const validAttempts = submittedAttempts;
+
+    // Sort by score descending, nulls last
+    const sortedAttempts = validAttempts.sort((a, b) => {
+      // If both have scores, sort by score desc
+      if (a.total_score != null && b.total_score != null) {
+        return b.total_score - a.total_score;
+      }
+      // If a has score and b doesn't, a comes first
+      if (a.total_score != null && b.total_score == null) {
+        return -1;
+      }
+      // If b has score and a doesn't, b comes first
+      if (a.total_score == null && b.total_score != null) {
+        return 1;
+      }
+      // Both null, sort by submission time (earlier first)
+      return (
+        (a.submitted_at?.getTime() || 0) - (b.submitted_at?.getTime() || 0)
+      );
+    });
+
+    // Build leaderboard with ranks
+    const leaderboard = sortedAttempts.map((attempt, index) => ({
+      rank: index + 1,
+      student: {
+        user_id: attempt.user.user_id,
+        full_name: attempt.user.full_name,
+        email: attempt.user.email,
+      },
+      score: attempt.total_score ?? undefined,
+      submitted_at: attempt.submitted_at?.toISOString(),
+      attempt_id: attempt.attempt_id,
+      status: attempt.status,
+    }));
+
+    return {
+      exam: {
+        exam_id: exam.exam_id,
+        title: exam.title,
+        max_score: maxScore,
+      },
+      leaderboard,
     };
   }
 

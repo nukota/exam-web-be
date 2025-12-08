@@ -90,31 +90,56 @@ export class SeedsService {
       email: 'student1@example.com',
       username: 'student1',
       full_name: 'Trần Văn An',
+      school_name: 'National High School',
+      class_name: 'Class A',
       role: UserRole.STUDENT,
+      photo_url:
+        'https://as1.ftcdn.net/jpg/01/81/01/66/1000_F_181016624_jg6E1C5xIKjNiitl6RwsF6EzY9y9wrBV.jpg',
+      dob: new Date('2005-05-15'),
     });
     const student2 = this.userRepository.create({
       email: 'student2@example.com',
       username: 'student2',
       full_name: 'Lê Thị Bình',
+      school_name: 'National High School',
+      class_name: 'Class A',
       role: UserRole.STUDENT,
+      photo_url:
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4At4PYMhG1JEetHoyeY9GUV9SgZjYC2is0g&s',
+      dob: new Date('2005-06-20'),
     });
     const student3 = this.userRepository.create({
       email: 'student3@example.com',
       username: 'student3',
       full_name: 'Phạm Minh Cường',
+      school_name: 'National High School',
+      class_name: 'Class B',
       role: UserRole.STUDENT,
+      photo_url:
+        'https://media.istockphoto.com/id/1438185814/photo/college-student-asian-man-and-studying-on-laptop-at-campus-research-and-education-test-exam.jpg?s=612x612&w=0&k=20&c=YmnXshbaBxyRc4Nj43_hLdLD5FLPTbP0p_3-uC7sjik=',
+      dob: new Date('2005-07-10'),
     });
     const student4 = this.userRepository.create({
       email: 'student4@example.com',
       username: 'student4',
       full_name: 'Hoàng Thu Dung',
+      school_name: 'National High School',
+      class_name: 'Class B',
       role: UserRole.STUDENT,
+      photo_url:
+        'https://img.freepik.com/free-photo/people-traveling-without-covid-worries_23-2149051623.jpg?semt=ais_hybrid&w=740&q=80',
+      dob: new Date('2005-08-25'),
     });
     const student5 = this.userRepository.create({
       email: 'student5@example.com',
       username: 'student5',
       full_name: 'Ngô Quang Đạt',
+      school_name: 'National High School',
+      class_name: 'Class A',
       role: UserRole.STUDENT,
+      photo_url:
+        'https://as1.ftcdn.net/jpg/01/62/11/66/1000_F_162116623_tA4TIrSHxeEdTvcYSV6Y86TxcbzmYSiI.jpg',
+      dob: new Date('2005-09-30'),
     });
     await this.userRepository.save([
       student1,
@@ -135,8 +160,8 @@ export class SeedsService {
       description: 'Basic mathematics concepts and problem solving',
       type: ExamType.STANDARD,
       access_code: 'MATH101',
-      start_at: new Date('2025-12-05T08:00:00'),
-      end_at: new Date('2025-12-05T10:00:00'),
+      start_at: new Date('2025-12-04T08:00:00'),
+      end_at: new Date('2025-12-04T10:00:00'),
       duration_minutes: 90,
       results_released: false,
     });
@@ -252,7 +277,7 @@ export class SeedsService {
       type: ExamType.STANDARD,
       access_code: 'SCI101',
       start_at: new Date('2025-12-07T10:00:00'),
-      end_at: new Date('2025-12-07T11:00:00'),
+      end_at: new Date('2026-01-30T11:00:00'),
       duration_minutes: 45,
       results_released: false,
     });
@@ -290,7 +315,7 @@ export class SeedsService {
       type: ExamType.CODING,
       access_code: 'CODE101',
       start_at: new Date('2025-12-08T14:00:00'),
-      end_at: new Date('2025-12-08T16:00:00'),
+      end_at: new Date('2025-12-20T16:00:00'),
       duration_minutes: 90,
       results_released: false,
     });
@@ -506,7 +531,7 @@ export class SeedsService {
       user_id: student1.user_id,
       started_at: new Date('2025-12-05T08:05:00'),
       submitted_at: new Date('2025-12-05T09:30:00'),
-      status: AttemptStatus.SUBMITTED,
+      status: AttemptStatus.GRADED,
       total_score: 15, // 5 + 10 + 0 (short answer wrong)
       cheated: false,
     });
@@ -600,7 +625,7 @@ export class SeedsService {
       user_id: student2.user_id,
       started_at: new Date('2025-12-08T14:10:00'),
       submitted_at: new Date('2025-12-08T15:45:00'),
-      status: AttemptStatus.SUBMITTED,
+      status: AttemptStatus.GRADED,
       total_score: 25, // 15 + 10 (partial for sum)
       cheated: false,
     });
@@ -627,7 +652,7 @@ export class SeedsService {
       user_id: student3.user_id,
       started_at: new Date('2025-12-05T08:00:00'),
       submitted_at: new Date('2025-12-05T09:45:00'),
-      status: AttemptStatus.SUBMITTED,
+      status: AttemptStatus.GRADED,
       total_score: 20, // Full score
       cheated: false,
     });
@@ -675,7 +700,7 @@ export class SeedsService {
       started_at: new Date('2025-12-06T09:00:00'),
       submitted_at: new Date('2025-12-06T10:20:00'),
       status: AttemptStatus.SUBMITTED,
-      total_score: 25, // 5 + 20
+      total_score: 5, // 5
       cheated: false,
     });
 
@@ -691,7 +716,6 @@ export class SeedsService {
         question_id: engEssayQ.question_id,
         answer_text:
           'Playing soccer is my passion. I love the feeling of running on the field, the teamwork with my friends, and the excitement of scoring goals. It keeps me fit and teaches me important life skills like cooperation and perseverance. Every weekend, I look forward to our local matches.',
-        score: 20,
       },
     ]);
 

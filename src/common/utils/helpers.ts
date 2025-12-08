@@ -98,18 +98,23 @@ export async function autoGradeAnswer(
     const selectedSet = new Set(answerSubmission.selected_choices);
     const correctSet = new Set(question.correct_answer || []);
 
-    // Must select exactly the correct answers (no more, no less)
-    if (selectedSet.size !== correctSet.size) {
-      return 0;
+    if (correctSet.size === 0) {
+      return 0; // No correct answers defined
     }
 
+    // Calculate partial credit: points per correct answer
+    const pointsPerCorrect = maxPoints / correctSet.size;
+    let score = 0;
+
+    // Award points for each correctly selected answer
     for (const selected of selectedSet) {
-      if (!correctSet.has(selected)) {
-        return 0;
+      if (correctSet.has(selected)) {
+        score += pointsPerCorrect;
       }
     }
 
-    return maxPoints;
+    // Round to 1 decimal place
+    return Math.round(score * 10) / 10;
   }
 
   // Short answer questions
@@ -152,12 +157,8 @@ export async function autoGradeAnswer(
 
       // Get test cases from question (check both camelCase and snake_case)
       const testCases = question.coding_test_cases || [];
-      console.log('Processing coding question:', question.question_id);
-      console.log('Test cases found:', testCases.length);
-      console.log('Language:', language);
 
       if (testCases.length === 0) {
-        console.log('No test cases - requires manual grading');
         return null; // No test cases, requires manual grading
       }
 
@@ -178,16 +179,13 @@ export async function autoGradeAnswer(
       const passedCount = results.filter((r: any) => r.passed).length;
       const totalCount = results.length;
 
-      console.log(`Test results: ${passedCount}/${totalCount} passed`);
-
       if (totalCount === 0) {
         return null;
       }
 
       // Proportional scoring
       const score = (passedCount / totalCount) * maxPoints;
-      console.log(`Calculated score: ${score} out of ${maxPoints}`);
-      return Math.round(score * 100) / 100; // Round to 2 decimal places
+      return Math.round(score * 10) / 10; // Round to 1 decimal place
     } catch (error) {
       console.error('Error grading coding question:', error);
       return null; // Fall back to manual grading on error

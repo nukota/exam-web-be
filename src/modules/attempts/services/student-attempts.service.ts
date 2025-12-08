@@ -287,6 +287,18 @@ export class StudentAttemptsService {
       order: { submitted_at: 'DESC' },
     });
 
+    // Check and update overdue attempts
+    const now = new Date();
+    for (const attempt of attempts) {
+      if (
+        attempt.status === AttemptStatus.NOT_STARTED &&
+        attempt.exam.end_at < now
+      ) {
+        attempt.status = AttemptStatus.OVERDUE;
+        await this.attemptRepository.save(attempt);
+      }
+    }
+
     // Map attempts to DTO format
     const results = await Promise.all(
       attempts.map(async (attempt) => {

@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -120,6 +121,39 @@ export class ExamsController {
     @Body() updateExamDto: UpdateExamDto,
   ): Promise<Exam> {
     return this.examsService.update(id, updateExamDto);
+  }
+
+  @Patch(':id/release-results')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Release results for an exam' })
+  @ApiParam({
+    name: 'id',
+    description: 'Exam UUID',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Results released successfully',
+    type: Exam,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Only the exam teacher can release results',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Cannot release results',
+  })
+  @ApiResponse({ status: 404, description: 'Exam not found' })
+  async releaseResults(
+    @Param('id') id: string,
+    @CurrentUser('user_id') userId: string,
+  ): Promise<Exam> {
+    const exam = await this.examsService.findOne(id);
+    if (exam.teacher_id !== userId) {
+      throw new ForbiddenException('Only the exam teacher can release results');
+    }
+    return this.examsService.releaseResults(id);
   }
 
   @Delete(':id')
