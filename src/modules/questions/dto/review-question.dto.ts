@@ -90,6 +90,14 @@ export class ReviewQuestionDto {
   selected_choices?: string[];
 
   @ApiProperty({
+    description: 'Programming language used for coding answer',
+    required: false,
+    enum: ProgrammingLanguage,
+    example: 'python',
+  })
+  programming_language?: ProgrammingLanguage;
+
+  @ApiProperty({
     description: 'Score awarded for this question',
     required: false,
     example: 8.5,

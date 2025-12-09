@@ -150,6 +150,8 @@ export class StudentAttemptsService {
       // Set answer data
       answer.answer_text = answerSubmission.answer_text;
       answer.selected_choices = answerSubmission.selected_choices;
+      answer.programming_language =
+        answerSubmission.programming_language as any;
 
       // Auto-grade based on question type
       const score = await autoGradeAnswer(

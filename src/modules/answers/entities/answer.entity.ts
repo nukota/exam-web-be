@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Attempt } from '../../attempts/entities/attempt.entity';
 import { Question } from '../../questions/entities/question.entity';
 import { User } from '../../users/entities/user.entity';
+import { ProgrammingLanguage } from '../../../common/enum';
 
 @Entity('answers')
 export class Answer {
@@ -28,6 +29,14 @@ export class Answer {
   })
   @Column({ type: 'uuid', array: true, nullable: true })
   selected_choices?: string[];
+
+  @ApiProperty({
+    description: 'Programming language used (for coding questions)',
+    required: false,
+    enum: ProgrammingLanguage,
+  })
+  @Column({ type: 'enum', enum: ProgrammingLanguage, nullable: true })
+  programming_language?: ProgrammingLanguage;
 
   @ApiProperty({ description: 'Score (null until graded)', required: false })
   @Column({ type: 'float', nullable: true })

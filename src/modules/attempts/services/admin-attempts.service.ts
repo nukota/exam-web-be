@@ -179,6 +179,7 @@ export class AdminAttemptsService {
           programming_languages: question.programming_languages as any,
           answer_text: answer?.answer_text,
           selected_choices: answer?.selected_choices,
+          programming_language: answer?.programming_language,
           score: answer?.score,
           choices,
           is_flagged: flaggedQuestionIds.has(question.question_id || ''),

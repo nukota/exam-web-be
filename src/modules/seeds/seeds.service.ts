@@ -524,6 +524,15 @@ export class SeedsService {
       correct_answer: [sciQ4Choices[2].choice_id],
     });
 
+    const sciQ5 = await this.questionRepository.save({
+      exam_id: scienceExam.exam_id,
+      question_type: QuestionType.ESSAY,
+      question_text:
+        'Explain the process of photosynthesis and why it is important for life on Earth. (150-200 words)',
+      points: 15,
+      order: 5,
+    });
+
     // 4. Create Coding Exams
 
     // Coding Exam 1: Basic Programming (ongoing - started 1 day ago, ends in 10 days)
@@ -975,6 +984,13 @@ export class SeedsService {
         ], // Correct
         // score: null, // Not submitted yet
       },
+      {
+        attempt_id: attempt3.attempt_id,
+        question_id: sciQ5.question_id,
+        answer_text:
+          'Photosynthesis is the process by which plants convert light energy into chemical energy. Using chlorophyll in their leaves, plants absorb sunlight and combine carbon dioxide from the air with water from the soil to produce glucose and oxygen. This process is vital for life on Earth because it provides the oxygen that most organisms need to breathe. Additionally, photosynthesis forms the base of most food chains, as plants create the energy that sustains herbivores and ultimately carnivores.',
+        // score: null, // Not submitted yet
+      },
     ]);
 
     const attempt4 = await this.attemptRepository.save({
@@ -997,12 +1013,14 @@ export class SeedsService {
         attempt_id: attempt4.attempt_id,
         question_id: codeQ1.question_id,
         answer_text: 'console.log("Hello " + (input || ""));', // JS code
+        programming_language: ProgrammingLanguage.JAVASCRIPT,
         score: 15,
       },
       {
         attempt_id: attempt4.attempt_id,
         question_id: codeQ2.question_id,
         answer_text: 'print(int(lines[0]) + int(lines[1]))', // Python code, partial
+        programming_language: ProgrammingLanguage.PYTHON,
         score: 10,
       },
     ]);
@@ -1106,6 +1124,13 @@ export class SeedsService {
           sciQ1Choices[2].choice_id,
         ],
         score: 10,
+      },
+      {
+        attempt_id: attempt8.attempt_id,
+        question_id: sciQ5.question_id,
+        answer_text:
+          'Photosynthesis happens when plants use sunlight to make food. They take in carbon dioxide and water, and produce glucose and oxygen. This is important because it gives us oxygen to breathe and creates food for animals.',
+        // score: null, // Essay not graded yet
       },
     ]);
 
@@ -1326,6 +1351,13 @@ export class SeedsService {
         selected_choices: [sciQ4Choices[2].choice_id],
         score: 0, // Wrong (not scored)
       },
+      {
+        attempt_id: attempt14.attempt_id,
+        question_id: sciQ5.question_id,
+        answer_text:
+          'Photosynthesis is a crucial biological process where plants use sunlight, water, and carbon dioxide to create glucose and release oxygen. Chlorophyll in plant cells captures light energy and converts it into chemical energy stored in glucose molecules. This process is fundamental to life because it produces the oxygen that most living organisms require for cellular respiration. Furthermore, photosynthesis is the foundation of food webs, as plants serve as primary producers that support all other life forms. Without photosynthesis, the Earth would lack sufficient oxygen and food sources to sustain complex life.',
+        // score: null, // Essay not graded yet
+      },
     ]);
 
     // Student 10: Attempted History Exam (submitted, not graded)
@@ -1466,6 +1498,13 @@ export class SeedsService {
         question_id: sciQ4.question_id,
         selected_choices: [sciQ4Choices[2].choice_id],
         score: 5,
+      },
+      {
+        attempt_id: attempt17.attempt_id,
+        question_id: sciQ5.question_id,
+        answer_text:
+          'Photosynthesis is how plants make their own food using sunlight. They absorb light energy through chlorophyll and use it to convert carbon dioxide and water into glucose sugar and oxygen gas. The oxygen released during photosynthesis is what we breathe, making it essential for human and animal survival. Plants also form the base of food chains, providing energy for herbivores which in turn feed carnivores. Without photosynthesis, life as we know it would not exist on Earth because there would be no oxygen in the atmosphere and no primary food source for the ecosystem.',
+        // score: null, // Essay not graded yet
       },
     ]);
 

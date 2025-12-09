@@ -100,6 +100,7 @@ CREATE TABLE IF NOT EXISTS answers (
   question_id UUID NOT NULL,
   answer_text TEXT, -- or code for coding exams, essay, short_answer
   selected_choices UUID[], -- for single_choice or multiple_choice questions
+  programming_language programming_language, -- language used for coding questions
   score FLOAT, -- null until graded
   graded_by UUID, -- teacher_id if essay or coding exam
   graded_at TIMESTAMP WITH TIME ZONE,
