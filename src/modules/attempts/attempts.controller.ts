@@ -280,4 +280,60 @@ export class AttemptsController {
   ): Promise<MyResultsPageDto> {
     return this.studentAttemptsService.getMyResults(userId);
   }
+
+  @Delete(':attemptId')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete an attempt (admin)' })
+  @ApiParam({
+    name: 'attemptId',
+    description: 'Attempt UUID to delete',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'Attempt deleted successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Attempt not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing Firebase token',
+  })
+  async deleteAttempt(@Param('attemptId') attemptId: string): Promise<void> {
+    return this.adminAttemptsService.remove(attemptId);
+  }
+
+  @Post('cancel-result/:attemptId')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Cancel result for a cheated attempt (admin)',
+  })
+  @ApiParam({
+    name: 'attemptId',
+    description: 'Attempt UUID to cancel',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Result cancelled successfully',
+    type: Attempt,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Attempt is not flagged as cheated',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Attempt not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing Firebase token',
+  })
+  async cancelResult(@Param('attemptId') attemptId: string): Promise<Attempt> {
+    return this.adminAttemptsService.cancelResult(attemptId);
+  }
 }

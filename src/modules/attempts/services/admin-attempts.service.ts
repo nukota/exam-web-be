@@ -349,4 +349,26 @@ export class AdminAttemptsService {
 
     return await this.attemptRepository.save(attempt);
   }
+
+  async cancelResult(attemptId: string): Promise<Attempt> {
+    const attempt = await this.attemptRepository.findOne({
+      where: { attempt_id: attemptId },
+    });
+
+    if (!attempt) {
+      throw new NotFoundException(`Attempt with ID ${attemptId} not found`);
+    }
+
+    if (!attempt.cheated) {
+      throw new BadRequestException(
+        'Cannot cancel result: attempt is not flagged as cheated',
+      );
+    }
+
+    // Set status to cancelled and reset score
+    attempt.status = AttemptStatus.CANCELLED;
+    attempt.total_score = 0;
+
+    return await this.attemptRepository.save(attempt);
+  }
 }

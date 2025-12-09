@@ -131,7 +131,8 @@ export class DashboardService {
     return Object.entries(groupedData)
       .map(([date, data]) => ({
         date,
-        avg_score: data.count > 0 ? data.total / data.count : 0,
+        avg_score:
+          data.count > 0 ? parseFloat((data.total / data.count).toFixed(1)) : 0,
       }))
       .sort((a, b) => (a.date! > b.date! ? 1 : -1));
   }
@@ -174,34 +175,30 @@ export class DashboardService {
   private async getStudentActivityData(): Promise<
     { date?: string; students?: number }[]
   > {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const attempts = await this.attemptRepository.find({
       where: {},
     });
 
-    // Filter attempts from last 30 days
+    // Filter attempts from last 7 days
     const recentAttempts = attempts.filter(
       (a) =>
-        a.created_at &&
-        new Date(a.created_at) >= thirtyDaysAgo &&
+        a.submitted_at &&
+        new Date(a.submitted_at) >= sevenDaysAgo &&
         (a.status === AttemptStatus.SUBMITTED ||
           a.status === AttemptStatus.GRADED ||
           a.status === AttemptStatus.IN_PROGRESS),
     );
 
-    // Group by 3-day intervals and count unique students
+    // Group by day and count unique students
     const groupedData: { [key: string]: Set<string> } = {};
     for (const attempt of recentAttempts) {
-      if (!attempt.created_at) continue;
+      if (!attempt.submitted_at) continue;
 
-      const date = new Date(attempt.created_at);
-      const intervalStart = new Date(date);
-      intervalStart.setDate(
-        intervalStart.getDate() - (intervalStart.getDate() % 3),
-      );
-      const key = intervalStart.toISOString().split('T')[0];
+      const date = new Date(attempt.submitted_at);
+      const key = date.toISOString().split('T')[0];
 
       if (!groupedData[key]) {
         groupedData[key] = new Set();

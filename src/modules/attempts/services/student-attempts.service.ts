@@ -103,14 +103,14 @@ export class StudentAttemptsService {
     const isOverdue = attempt.exam.end_at < now;
 
     // Check if submission is within time limit (start time + duration)
-    let isWithinTimeLimit = true;
-    if (attempt.started_at && attempt.exam.duration_minutes) {
-      const allowedEndTime = new Date(attempt.started_at);
-      allowedEndTime.setMinutes(
-        allowedEndTime.getMinutes() + attempt.exam.duration_minutes,
-      );
-      isWithinTimeLimit = now <= allowedEndTime;
-    }
+    // let isWithinTimeLimit = true;
+    // if (attempt.started_at && attempt.exam.duration_minutes) {
+    //   const allowedEndTime = new Date(attempt.started_at);
+    //   allowedEndTime.setMinutes(
+    //     allowedEndTime.getMinutes() + attempt.exam.duration_minutes,
+    //   );
+    //   isWithinTimeLimit = now <= allowedEndTime;
+    // }
 
     // Get detailed exam with questions
     const detailedExam = await this.examsService.getDetailedExam(
@@ -163,9 +163,15 @@ export class StudentAttemptsService {
         answer.score = score;
         totalScore += score;
       } else {
-        // Essay or coding question needs manual grading
-        hasEssayQuestions = true;
-        answer.score = undefined;
+        // Only essay questions need manual grading
+        // Coding questions that return null should still get a score of 0
+        if (question.question_type === 'essay') {
+          hasEssayQuestions = true;
+          answer.score = undefined;
+        } else {
+          // For coding questions that fail auto-grading, assign 0
+          answer.score = 0;
+        }
       }
 
       await this.answerRepository.save(answer);
@@ -180,7 +186,7 @@ export class StudentAttemptsService {
     attempt.total_score = totalScore;
 
     // Set status based on conditions
-    if (isOverdue || !isWithinTimeLimit) {
+    if (isOverdue /* || !isWithinTimeLimit */) {
       attempt.status = AttemptStatus.OVERDUE;
     } else if (hasEssayQuestions) {
       attempt.status = AttemptStatus.SUBMITTED;
@@ -317,6 +323,14 @@ export class StudentAttemptsService {
             ? (attempt.total_score / maxScore) * 100
             : undefined;
 
+        // If results are not released, hide scores
+        const finalPercentageScore = detailedExam.results_released
+          ? percentageScore
+          : undefined;
+        const finalTotalScore = detailedExam.results_released
+          ? (attempt.total_score ?? undefined)
+          : undefined;
+
         return {
           attempt_id: attempt.attempt_id,
           exam: {
@@ -326,8 +340,8 @@ export class StudentAttemptsService {
             max_score: maxScore,
           },
           submitted_at: attempt.submitted_at?.toISOString(),
-          percentage_score: percentageScore,
-          total_score: attempt.total_score ?? undefined,
+          percentage_score: finalPercentageScore,
+          total_score: finalTotalScore,
           cheated: attempt.cheated,
           status: attempt.status,
         };
